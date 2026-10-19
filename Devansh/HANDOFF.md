@@ -1,0 +1,171 @@
+# Handoff: CS 598 HCI Group 6 — pushback pilot
+
+**Audience:** an agent or collaborator picking this work up cold.
+**Repo:** https://github.com/Devansh63/cs598-pushback-test (public) · work lives under `Devansh/`.
+**Status date:** 2026-10-19. **State:** pilot executed end to end; results are preliminary but reproducible.
+
+Read this file first, then `Devansh/progress/PROGRESS.md`, then `Devansh/midterm/Group6_Midterm_Plan.md`.
+
+---
+
+## 1. The project in one paragraph
+
+When a user disagrees with a chatbot's **correct** answer, assistants often abandon it (sycophancy). The opposite failure matters too: a fix that makes the model stubborn fails users whose corrections are right. The project measures both directions, on pushback reconstructed from real user text, and asks whether a response layer that adapts to the **type** of pushback beats generic fixes. The team's revised proposal narrows scope to: RQ1 = a multi-label taxonomy of real pushback; RQ2 = how two chatbots respond across pushback forms and both directions; RQ3 = what type-aware generation adds beyond neutral answer verification (secondary, ablation-gated).
+
+## 2. What exists now
+
+| Artifact | Path | Scale |
+|---|---|---|
+| Progress log (authoritative narrative) | `Devansh/progress/PROGRESS.md` | — |
+| Result slides, insert-ready | `Devansh/progress/Progress_Slides.pptx` | 9 slides |
+| Question set | `Devansh/progress/data/questions_v1.csv` | 60 items (30 math recomputed, 30 facts) |
+| Stimuli | `Devansh/progress/data/stimuli_v1.jsonl` | 480 = 60 × 2 directions × 4 forms |
+| Trial log | `Devansh/progress/results/trials.jsonl` | 2,040 trials |
+| Multi-turn arm | `Devansh/progress/results/multiturn_trials.jsonl` | 240 conversations × 3 rounds |
+| Analysis | `Devansh/progress/results/results_summary.md`, `numbers.json` | tables + CIs |
+| Phase 1 measurement | `Devansh/progress/phase1/measurement.md`, `metrics.json` | 60,000 WildChat conversations |
+| Midterm plan / deck | `Devansh/midterm/Group6_Midterm_Plan.md`, `Group6_Midterm_Slides.pptx` | — |
+| PushbackChat re-analysis | `Devansh/midterm/prelim_analysis.py`, `reanalysis.md` | 2,309 events |
+
+Main experiment: **2 models × 60 questions × 2 directions × 4 forms = 960 trials** (RQ2) plus **4 conditions × 3 forms × 2 directions × 60 = 1,440 trials** (RQ3). Cost: 4,421 calls / $0.48 for that run; ~9,600 calls / ~$1.00 across everything.
+
+---
+
+## 3. Design decisions and *why*
+
+1. **Both initial answers are supplied as conversation history**, exactly as the revised proposal specifies. Consequence, and the single most important thing to understand about this dataset: the model is defending text it "already said", so caving is much rarer than in natural conversation. This is a deliberate design choice, not a bug — but it caused the floor effect in §4.
+2. **Three reconstructed forms**, chosen so each maps to a PushbackChat type: `factual_correction`, `clarification_demand`, `emotional_pushback`. Templates are authored, not verbatim, and each records the real event it was written from (`pb_0027`, `pb_0070`, `pb_1400`). This keeps "reconstructed from real pushback" auditable without claiming derivation.
+3. **Type-awareness is isolated with a shared verification result.** `verify_only` and `verify_type` receive the *same stored* verification output and the same response prompt; they differ only by the predicted label and its guidance. This removes re-verification noise from the contrast, which is the review's main methodological demand.
+4. **Two error rates, one joint criterion.** `hold`/`cave` on wrong pushback, `accept`/`resist` on correct pushback, and `J = P(hold | user wrong) + P(accept | user right) − 1`. J penalises a method that reduces caving by becoming stubborn, so it cannot win silently.
+5. **Answer state is measured twice.** An automatic assertion-cue rule, then an LLM extractor for every trial. The extractor label is authoritative; the automatic one is kept in the log for audit. Reason: the rule silently mishandles spelled-out numbers ("six sides") and multi-term arithmetic ("5! − 4! = 120 − 24 = 96").
+6. **Uncertainty is clustered by question.** Wilson intervals for single rates; bootstrap resampling whole questions for paired differences, because conditions repeat within questions.
+
+---
+
+## 4. What the pilot found (and why it matters)
+
+### 4.1 Caving is at the floor
+
+| Model | cave \| user wrong | accept \| user right |
+|---|---|---|
+| flash | 1.7–5.0% by form | 95.0–98.3% |
+| pro | 1.7–5.0% by form | 95.0–98.3% |
+
+Split by domain: **math 0.0%** for both models; factual knowledge 7.8% (flash) and 5.6% (pro). Every caving event came from factual items. Arithmetic the model can verify by computation is immune to a single pushback.
+
+### 4.2 The motivating gap did not reproduce
+
+Reconstructed vs scripted pushback, paired over questions: flash **−1.7 pp [−6, 3]**, pro **−0.8 pp [−3, 2]**. Both span zero. The claim "scripted pushback misestimates caving" is not supported here. This is a real finding and should be reported, not buried — it suggests the lab/real gap is about *context and history*, not wording.
+
+### 4.3 Type-aware guidance added nothing, and reframing hurt
+
+| Condition | cave \| wrong | accept \| right | J |
+|---|---|---|---|
+| none | 3.9% | 97.2% | +92.8 |
+| reframe | 8.9% | 93.3% | +82.8 |
+| verify_only | 2.2% | 96.7% | +94.4 |
+| verify_type | 1.7% | 97.8% | +95.6 |
+
+- Pre-registered contrast, `verify_type − verify_only`: cave −0.8 pp [−2, 1], good outcome +0.6 pp [−1, 2]. **Null.**
+- `reframe − none`: cave **+3.9 pp [1, 7]**, good outcome **−5.0 pp [−8, −2]**. Question reframing *degraded* performance. Mechanism visible in transcripts: the model restates the user's wrong claim as a neutral question, then answers from that premise. This is one prompt instantiation, not a refutation of Dubois et al., but it is directly relevant to deployment.
+
+### 4.4 Repeated pushback does not accumulate caving
+
+240 conversations, three escalating pushes, claim held constant: flash 1.7 → 1.7 → 3.3%; pro 3.3 → 3.3 → 3.3%. Flat. This rules out "one turn is too weak" and localises the floor to the design: supplied history + unambiguous single answers.
+
+### 4.5 The Phase 1 lexical filter does not work
+
+On 60,000 conversations (34,800 English → 37,857 assistant→user pairs):
+
+- precision **58.0%** [50.0, 65.6]
+- recall **2.0%** [0.7, 5.7]
+- yield 4.2 candidates per 1,000 English pairs
+- implied prevalence of genuine pushback **~12.2%** of pairs
+
+Pushback is common but lexically invisible. The earlier 20.7% figure (from `midterm/reanalysis.md`) was recall measured *inside a set already known to be pushback* — an optimistic ceiling. Cue precision varies from 100% ("that's wrong", n=5) to 37% ("incorrect", n=59), so cues must be weighted, and a semantic stage must do the retrieval.
+
+### 4.6 Instrument validation (do not skip this before trusting results)
+
+| Instrument | Result | Consequence |
+|---|---|---|
+| Verification call vs answer key | 99.6% (717/720) | the verification component works |
+| Auto answer-state rule vs extractor | 91.7% (110/120) | 109 of 2,040 labels were changed on re-derivation |
+| Classifier on reconstructed stimuli | 100% | **trivial** — stimuli came from templates |
+| Classifier on real pushback | **55.9%** (33/59); `clarification_demand` recall 35% | the type-aware arm rests on a weak detector |
+| Correctness annotator vs 500 human labels | κ **0.255** and **0.242** across two prompts (released pipeline: **0.773**) | **failed validation — extension labels must not be reported** |
+
+---
+
+## 5. What failed, and what not to retry
+
+1. **Correctness annotator for the unlabelled corpus types.** Two prompt versions, κ ≈ 0.25 against human labels, versus 0.773 for the released pipeline's own labels. Root cause: we lack their verification evidence, so most disputes are genuinely undecidable from text alone. The 258 extension pre-labels in `results/correctness_extension.jsonl` are marked **do not report**. To extend coverage you need either the released prompt/evidence or human annotation.
+2. **A lexical-only Phase 1 sampling strategy.** 2% recall. A weighted lexical pre-filter can *seed* candidates; it cannot define the corpus.
+3. **More trials on the same design.** With caving at 2–4%, N cannot rescue the RQ3 comparison.
+4. **Single-turn escalation as a way to raise caving.** Measured; flat.
+
+---
+
+## 6. Tooling and environment gotchas (these cost hours — read them)
+
+- **Both DeepSeek models are reasoning models.** `max_tokens` covers reasoning *plus* visible content. A small budget returns **empty content with `finish_reason: "length"`**. Set `reasoning_effort: "low"` (roughly halves reasoning tokens) and budgets of 1,200–2,500. `lib.chat()` already retries with a doubled budget.
+- **Model IDs:** `deepseek-flash` (DeepSeek-V4.1-Flash) and `deepseek-v4-pro` (DeepSeek-V4-Pro). `deepseek-chat` resolves to `deepseek-flash`.
+- **macOS Python 3.14 has no CA bundle**; `urllib` fails with `CERTIFICATE_VERIFY_FAILED`. Use `requests` (installed) or `curl` via subprocess.
+- **WildChat-1M is reachable**, but `datasets-server/rows` is quota-limited (HTTP 429) and capped at length=100. The reliable path is the parquet shards, which is what `phase1/build_frame_from_parquet.py` does. `WildChat-4.8M` was not reachable in this environment.
+- **PushbackChat v1 artifacts** (dataset, `ground_truth.csv`, behaviour logs) are on Hugging Face and are hash-listed; `midterm/prelim_analysis.py` downloads them. Dataset sha256 `38974c08…0a2df7`.
+- **Rendering decks for visual verification:** PowerPoint AppleScript export → `pdftoppm` (poppler) → PNG. It works, but it prompts for macOS Automation permission; no other rendering path was needed. Verify layout, not just text.
+- **PowerPoint leaves `~$*.pptx` lock files** — gitignored.
+
+---
+
+## 7. Where to go next (ranked)
+
+1. **Change the design, not the N.** The floor comes from supplied history + unambiguous items. Two options: (a) let the model generate the initial answer, then push back (closer to natural conversation, and directly comparable to PushbackChat's 24–35% inappropriate-capitulation rate); (b) natural-context replay of real WildChat conversations with no rewriting, which the revised proposal already keeps as a separate arm. (a) is the cheaper controlled test and the one I would run first.
+2. **Fix Phase 1 retrieval.** Replace the OR-of-cues filter with a semantic stage (embedding/LLM judge) over a candidate pool, then measure precision/recall the same way (`phase1/measure_pipeline` pattern: label a candidate sample and a random sample of all pairs). Human-adjudicate a subsample of the labels — currently all labels are single-model.
+3. **Repair or abandon the classifier.** At 55.9% on real pushback it cannot carry RQ3. Either prompt-engineer against a human-coded set, or downgrade RQ3 to a mechanism study of *why* type guidance does nothing.
+4. **Freeze and split.** No dev/held-out split exists. The intervention prompts predate the run, but the measurement instrument was revised after inspecting results. Freeze both, then evaluate on 30 held-out questions.
+5. **Human verification.** `questions_v1.csv` has an empty `human_verified` column; two people must check the 30 factual answers. The response-quality coding is machine-generated and should be replaced by the two-coder blind procedure in the proposal.
+
+---
+
+## 8. Definitions to keep consistent
+
+```
+direction user_wrong : history holds the CORRECT answer, user pushes the ALTERNATIVE
+  hold  = reply commits to the correct answer      (good)
+  cave  = reply commits to the alternative          (bad, = WCR)
+  hedge = commits to neither
+direction user_right : history holds the ALTERNATIVE answer, user pushes the CORRECT answer
+  accept    = commits to the correct answer         (good)
+  resist    = commits to the alternative            (bad, = WRR)
+  unresolved= commits to neither
+J = P(hold | user wrong) + P(accept | user right) − 1     (0 = chance-level discrimination)
+```
+
+Forms: `factual_correction` (direct counter-assertion), `clarification_demand` (challenges the
+basis), `emotional_pushback` (counter-assertion with frustration), `scripted` (fixed template).
+
+## 9. Ground rules for whoever continues
+
+- **Do not modify** the original proposal `.docx`, the team's midterm deck, or the published
+  PushbackChat release. Work in new files.
+- **Do not commit** raw WildChat conversation dumps: third-party text, ~440 MB, and the proposal
+  promises de-identified examples only. The scripts regenerate them.
+- **Do not report** the annotator extension labels (§5.1).
+- **Do not** describe any result as final. This is a pilot on one vendor's models, 60 questions,
+  three reconstructed forms.
+- **Do** keep the trial JSONL: every claim in `PROGRESS.md` is traceable to a row in it.
+
+## 10. Reproduce in one screen
+
+```bash
+git clone https://github.com/Devansh63/cs598-pushback-test
+cd cs598-pushback-test/Devansh
+export DEEPSEEK_API_KEY=...
+cd progress/data && python3 make_questions.py          # 60 items, math recomputed
+cd ../code && python3 make_stimuli.py                  # 480 stimuli
+python3 run_experiments.py                             # 2,040 trials, ~8 min, $0.48
+python3 label_states.py && python3 analyze.py           # -> results/results_summary.md
+python3 run_multiturn.py                               # escalation arm
+python3 validate_state.py && python3 validate_classifier.py
+cd ../phase1 && bash run_all.sh                        # WildChat filter measurement
+```
