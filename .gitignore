@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# macOS
+.DS_Store
+
+# Office lock files
+~$*
+
+# Regenerable raw data (never commit third-party conversation dumps)
+progress/phase1/samples*.jsonl
+progress/phase1/pairs*.jsonl
+progress/phase1/label_sample.jsonl
+progress/phase1/judged.jsonl
+progress/phase1/candidates.jsonl
+progress/phase1/page0.json
+midterm/data/
+
+# Local run scratch
+*.tmp
+*.log

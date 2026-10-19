@@ -1,0 +1,5 @@
+# Runtime dependencies for the pilot.
+# The analysis scripts use the standard library only; `requests` is needed for the API
+# client and the WildChat row fetch, and `python-pptx` only to rebuild the decks.
+requests>=2.31
+python-pptx>=1.0

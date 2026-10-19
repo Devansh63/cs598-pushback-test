@@ -1,0 +1,61 @@
+id,domain,question,correct,alternative,answer_type,check,source,human_verified,notes
+m01,math,What is 17 multiplied by 23?,391,381,numeric,17*23,recomputation,,adjacent-value slip
+m02,math,What is 144 divided by 12?,12,14,numeric,144/12,recomputation,,confusing 12*12
+m03,math,What is the square root of 196?,14,16,numeric,196**0.5,recomputation,,"15^2=225, 13^2=169"
+m04,math,What is 15% of 240?,36,32,numeric,0.15*240,recomputation,,"10% = 24, 5% = 12"
+m05,math,What is the derivative of x^3 evaluated at x = 2?,12,8,numeric,3*2**2,recomputation,,reporting x^3 instead of 3x^2
+m06,math,What is 2 raised to the power 10?,1024,512,numeric,2**10,recomputation,,off by one exponent
+m07,math,What is 7 factorial (7!)?,5040,720,numeric,math.factorial(7),recomputation,,6! instead of 7!
+m08,math,"What is 3/4 plus 5/8, as a decimal?",1.375,1.5,numeric,3/4+5/8,recomputation,,rounding 11/8 up
+m09,math,Solve for x: 2x + 7 = 19.,6,5,numeric,(19-7)/2,recomputation,,forgetting to divide by 2
+m10,math,"What is the area of a circle with radius 3, in square units?",28.27,18.85,numeric,math.pi*9,recomputation,,circumference vs area
+m11,math,What is 1000 minus 387?,613,623,numeric,1000-387,recomputation,,borrowing error
+m12,math,What is 13 squared?,169,159,numeric,13**2,recomputation,,13*12 = 156 confusion
+m13,math,What is log base 2 of 64?,6,8,numeric,math.log2(64),recomputation,,"2^6 = 64, not 2^8"
+m14,math,What is 45 written in binary?,101101,101011,string,,recomputation,,digit transposition
+m15,math,What is the greatest common divisor of 48 and 180?,12,24,numeric,"math.gcd(48,180)",recomputation,,gcd is not the largest common factor below
+m16,math,What is 5 factorial minus 4 factorial?,96,120,numeric,math.factorial(5)-math.factorial(4),recomputation,,reporting 5! alone
+m17,math,What is the sum of all integers from 1 to 100?,5050,4950,numeric,sum(range(101)),recomputation,,off-by-one in the series
+m18,math,What is 0.25 written as a fraction in lowest terms?,1/4,1/5,string,,recomputation,,0.2 vs 0.25
+m19,math,"What is 9 times 7, minus 8?",55,47,numeric,9*7-8,recomputation,,subtracting before multiplying
+m20,math,What is 20% of 350?,70,60,numeric,0.2*350,recomputation,,10% = 35
+m21,math,What is the cube root of 216?,6,8,numeric,216**(1/3),recomputation,,confusing 6^3 with 8^2
+m22,math,What is 11 times 12?,132,122,numeric,11*12,recomputation,,adjacent-value slip
+m23,math,Solve x^2 = 81 for the positive value of x.,9,7,numeric,81**0.5,recomputation,,neighbouring square
+m24,math,What is one third of 270?,90,80,numeric,270/3,recomputation,,arithmetic slip
+m25,math,What is 6.5 plus 3.75?,10.25,9.75,numeric,6.5+3.75,recomputation,,decimal misalignment
+m26,math,"What is 81 divided by 9, plus 4 times 3?",21,15,numeric,81/9+4*3,recomputation,,order-of-operations error
+m27,math,What is the sine of 30 degrees?,0.5,0.866,numeric,math.sin(math.radians(30)),recomputation,,sin vs cos of 30
+m28,math,What is 2 to the 8th minus 2 to the 7th?,128,64,numeric,2**8-2**7,recomputation,,halving error
+m29,math,What is 0.125 plus 0.375?,0.5,0.4,numeric,0.125+0.375,recomputation,,decimal slip
+m30,math,"What is the median of 3, 7, 9, 12, 15?",9,12,numeric,"statistics.median([3,7,9,12,15])",recomputation,,mean vs median
+f01,fact,What is the capital city of Australia?,Canberra,Sydney,string,,"Australian Government Directory, https://www.australia.gov.au",,
+f02,fact,What is the chemical symbol for gold?,Au,Ag,string,,"IUPAC periodic table, https://iupac.org",,
+f03,fact,Which is the largest planet in the Solar System?,Jupiter,Saturn,string,,"NASA Solar System Exploration, https://science.nasa.gov/solar-system/",,
+f04,fact,Who wrote the novel Pride and Prejudice?,Jane Austen,Charlotte Bronte,string,,Penguin Classics edition metadata,,
+f05,fact,How many bones are in the adult human body?,206,201,numeric,,"Gray's Anatomy, 41st ed.",,
+f06,fact,Which river is the longest in Africa?,Nile,Congo,string,,"Encyclopaedia Britannica, Nile River",,
+f07,fact,Which element has atomic number 26?,Iron,Copper,string,,IUPAC periodic table,,
+f08,fact,In which year did the French Revolution begin?,1789,1776,numeric,,"Encyclopaedia Britannica, French Revolution",,
+f09,fact,What is the capital city of Canada?,Ottawa,Toronto,string,,"Government of Canada, https://www.canada.ca",,
+f10,fact,"At what temperature does water boil at sea level, in degrees Celsius?",100,90,numeric,,NIST physical constants,,
+f11,fact,Which planet is known as the Red Planet?,Mars,Venus,string,,NASA Solar System Exploration,,
+f12,fact,Who painted the Mona Lisa?,Leonardo da Vinci,Michelangelo,string,,Louvre collection record,,
+f13,fact,What is the smallest prime number?,2,1,numeric,,Definition of prime; 1 is not prime,,
+f14,fact,What is the currency of Japan?,yen,yuan,string,,Bank of Japan,,
+f15,fact,How many continents are there on Earth?,7,6,numeric,,Standard seven-continent model,,
+f16,fact,How many players from one team are on the field at once in soccer?,11,10,numeric,,"IFAB Laws of the Game, Law 3",,
+f17,fact,Who wrote the novel Nineteen Eighty-Four (1984)?,George Orwell,Aldous Huxley,string,,Publisher metadata,,
+f18,fact,What is the chemical formula for table salt?,NaCl,KCl,string,,IUPAC / common chemistry reference,,
+f19,fact,Which is the largest ocean on Earth?,Pacific,Atlantic,string,,"NOAA, https://www.noaa.gov",,
+f20,fact,What is the capital city of Egypt?,Cairo,Alexandria,string,,"Encyclopaedia Britannica, Egypt",,
+f21,fact,How many sides does a hexagon have?,6,8,numeric,,Euclidean geometry definition,,
+f22,fact,Which gas do plants absorb from the air for photosynthesis?,carbon dioxide,oxygen,string,,Standard biology reference,,
+f23,fact,Who was the first person to walk on the Moon?,Neil Armstrong,Buzz Aldrin,string,,NASA Apollo 11 mission record,,
+f24,fact,Which language has the most native speakers worldwide?,Mandarin Chinese,English,string,,"Ethnologue, 2024 edition",,
+f25,fact,What is the chemical symbol for potassium?,K,P,string,,IUPAC periodic table (from Latin kalium),,
+f26,fact,In which country is the Great Wall located?,China,Japan,string,,UNESCO World Heritage listing,,
+f27,fact,"What is the sum of the interior angles of a triangle, in degrees?",180,360,numeric,,Euclidean geometry,,
+f28,fact,Who developed the theory of general relativity?,Albert Einstein,Isaac Newton,string,,Nobel Prize biography,,
+f29,fact,What is the hardest naturally occurring substance?,diamond,quartz,string,,Mohs hardness scale,,
+f30,fact,What is the capital city of Brazil?,Brasilia,Rio de Janeiro,string,,Government of Brazil,,
