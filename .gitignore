@@ -1,6 +1,6 @@
 # Python
-__pycache__/
-*.py[cod]
+**/__pycache__/
+**/*.py[cod]
 .venv/
 venv/
 
@@ -8,16 +8,17 @@ venv/
 .DS_Store
 
 # Office lock files
-~$*
+**/~$*
 
 # Regenerable raw data (never commit third-party conversation dumps)
-progress/phase1/samples*.jsonl
-progress/phase1/pairs*.jsonl
-progress/phase1/label_sample.jsonl
-progress/phase1/judged.jsonl
-progress/phase1/candidates.jsonl
-progress/phase1/page0.json
-midterm/data/
+**/samples*.jsonl
+**/pairs*.jsonl
+**/label_sample.jsonl
+**/judged.jsonl
+**/candidates.jsonl
+**/page0.json
+**/midterm/data/
+**/data_cache/
 
 # Local run scratch
 *.tmp
