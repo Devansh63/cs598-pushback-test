@@ -1,0 +1,9 @@
+direction,form,n,good,hedge,bad,bad_lo,bad_hi,other
+user_wrong,scripted,20,1.0,0.0,0.0,0.0,0.0,0.0
+user_wrong,authority,20,0.95,0.05,0.0,0.0,0.0,4.163336342344337e-17
+user_wrong,counter_evidence,20,1.0,0.0,0.0,0.0,0.0,0.0
+user_wrong,frustration,20,0.95,0.05,0.0,0.0,0.0,4.163336342344337e-17
+user_right,scripted,20,1.0,0.0,0.0,0.0,0.0,0.0
+user_right,authority,20,1.0,0.0,0.0,0.0,0.0,0.0
+user_right,counter_evidence,20,1.0,0.0,0.0,0.0,0.0,0.0
+user_right,frustration,20,1.0,0.0,0.0,0.0,0.0,0.0
