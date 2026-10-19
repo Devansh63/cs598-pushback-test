@@ -137,6 +137,11 @@ before the pushback arrives.
 **Resolved in §8.4.** Replaying the real conversation restores adoption to 72–78%, matching the
 published range. The floor was the design.
 
+**Independent corroboration.** A teammate's separate pilot on Gemini (`Sahil/outputs/pilot_gemini-3.8-flash/summary.md`,
+20 questions, four forms, 160 judged trials) reports **0% caving and 0% resistance** in every
+condition — the same floor, a different model and different stimuli. That makes the effect a
+property of the supplied-history design rather than of one vendor's models.
+
 ---
 
 ## 6. Phase 1 — the lexical filter recovers about 2% of real pushback
