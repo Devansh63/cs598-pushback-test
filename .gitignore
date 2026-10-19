@@ -20,6 +20,11 @@ venv/
 **/midterm/data/
 **/data_cache/
 
+# pushback_300: source materials and parsed conversation text contain real user turns.
+# Only aggregate results and code are committed.
+**/pushback300/source/
+**/pushback300/data_local/
+
 # Local run scratch
 *.tmp
 *.log

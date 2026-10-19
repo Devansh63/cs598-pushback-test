@@ -12,10 +12,29 @@ import sys
 from pptx import Presentation
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-MIDTERM = os.path.join(os.path.dirname(HERE), "Midterm")
+MIDTERM = os.path.join(os.path.dirname(HERE), "midterm")
 sys.path.insert(0, MIDTERM)
 
 import build_deck as bd  # noqa: E402
+
+def resolve_template(name="Illinois PowerPoint Template 1.pptx"):
+    """Find the course template without hard-coding one machine's layout.
+
+    Order: ILLINOIS_TEMPLATE env var, Devansh/assets/, the course folder, then the
+    previously built deck (which carries the same theme and layouts).
+    """
+    here = os.path.dirname(os.path.abspath(__file__))
+    candidates = [
+        os.environ.get("ILLINOIS_TEMPLATE"),
+        os.path.join(os.path.dirname(here), "assets", name),
+        os.path.join(here, name),
+        os.path.expanduser("~/CS 598 HCI/" + name),
+        "/Users/devanshagrawal/CS 598 HCI/" + name,
+    ]
+    for c in candidates:
+        if c and os.path.exists(c):
+            return c
+    return None
 
 TEMPLATE = os.path.join(os.path.dirname(HERE), "Illinois PowerPoint Template 1.pptx")
 OUT = os.path.join(HERE, "Progress_Slides.pptx")
@@ -23,7 +42,12 @@ I = bd.Inches
 
 
 def build():
-    prs = Presentation(TEMPLATE)
+    base = resolve_template()
+    if base is None and os.path.exists(OUT):
+        base = OUT  # reuse the built deck: same theme and layouts
+    if base is None:
+        sys.exit("template not found; set ILLINOIS_TEMPLATE to the course template")
+    prs = Presentation(base)
     bd.blank(prs)
 
     # ---- 1 title
@@ -195,15 +219,74 @@ def build():
     bd.notes(s, "This is the finding that changes Phase 1. It is also the strongest example of the "
                 "methodology the review asked for: measure the instrument before trusting the data.")
 
+    # ---- new: 300-case corpus
+    s = bd.add(prs, "A second corpus: 300 real pushback cases")
+    bd.table(s, ["Property", "Value"], [
+        ["Cases", "300, from 14 WildChat parquet shards (revision 7d6490e)"],
+        ["Structure", "target turn is always the last message, always a user turn, always "
+                      "preceded by an assistant answer (300/300)"],
+        ["Context before the pushback", "median 1,650 chars (max 6,467) \u2014 replay-ready"],
+        ["Human coding", "none \u2014 team coding notes empty in all 300 rows"],
+        ["Correctness labels", "none"],
+        ["AI prescreen", "100/100 sampled cases independently confirmed as pushback [96, 100]"],
+    ], top=I(1.5), fsize=12, hsize=12)
+    bd.bullets(s, [
+        "This is the Phase 1 sample the proposal promised, with context. It needs coding, not "
+        "collection.",
+        "It also supplies three things the project lacked: a codeable corpus, a classifier test "
+        "set, and the replay arm on the next slide.",
+    ], top=I(4.25), size=14, space=8)
+    bd.notes(s, "Prescreen agreement is AI-to-AI, not against human labels. Say that before someone "
+                "asks.")
+
+    # ---- new: code reproducibility
+    s = bd.add(prs, "The 10-code scheme reproduces \u2014 except bare disagreement")
+    bd.table(s, ["Code", "Label", "Cohen's \u03ba", "Code", "Label", "Cohen's \u03ba"], [
+        ["P", "repeated insistence", "0.90", "L", "reasoning challenge", "0.76"],
+        ["S", "authority/source appeal", "0.89", "A", "alternative claim", "0.71"],
+        ["E", "counter-evidence", "0.84", "T", "task correction", "0.70"],
+        ["I", "inconsistency challenge", "0.83", "F", "frustration", "0.57"],
+        ["R", "recheck request", "0.81", "B", "bare disagreement", "0.26"],
+    ], top=I(1.55), fsize=11.5, hsize=11)
+    bd.bullets(s, [
+        "Two independent AI passes over all 300 turns. Identical code set 37.3%; adding the "
+        "workbook's own exclusion rule for B raises that to 47.3% and B's \u03ba to 0.40.",
+        "Bare disagreement is the one code that cannot carry a claim until it is sharpened or "
+        "dropped. These \u03ba values are an upper bound: AI coders agree more than humans will.",
+    ], top=I(4.55), size=13.5, space=8)
+    bd.notes(s, "The honest read: the scheme is usable, with one code flagged. That is exactly what "
+                "the two-human pass needs to know in advance.")
+
+    # ---- new: replay
+    s = bd.add(prs, "The floor was the design, not the models")
+    bd.table(s, ["Setting", "Adoption / capitulation"], [
+        ["Our pilot \u2014 supplied history, single turn", "0\u20138%"],
+        ["PushbackChat \u2014 2,309 real events, published", "67.0\u201377.1%"],
+        ["This replay \u2014 deepseek-flash", "78.3%  [73, 83]"],
+        ["This replay \u2014 deepseek-v4-pro", "71.9%  [67, 77]"],
+    ], top=I(1.55), fsize=13, hsize=13)
+    bd.bullets(s, [
+        "600 trials: 300 real conversations \u00d7 2 models, full original context replayed up to the "
+        "pushback. The same models adopt real pushback at published rates.",
+        "Type matters: bare disagreement 87.7% vs reasoning challenge 63.0%. Substantive reasoning "
+        "resists adoption; vague disagreement invites it.",
+        "86\u201389% of replies add new reasoning \u2014 models rationalise rather than merely agree.",
+        "Adoption is not harmful adoption. Without correctness labels we cannot say how often a "
+        "correct answer was abandoned.",
+    ], top=I(3.55), size=13, space=7)
+    bd.notes(s, "This is the project's central empirical finding. If only one slide from the pilot "
+                "survives, it is this one.")
+
     # ---- 9 what changes
     s = bd.add(prs, "What this changes in the remaining weeks")
     bd.bullets(s, [
         ("1. Phase 1 becomes semantic retrieval plus human coding.", 0, True),
         ("A weighted lexical pre-filter at 58% precision can seed candidates, but it cannot be "
          "the sampling strategy. Recall at 2% would make the corpus a biased slice.", 1),
-        ("2. The pushback experiment needs a harder design, not more trials.", 0, True),
-        ("Natural-context replay with model-generated answers, and items where the plausible "
-         "wrong answer is genuinely attractive. The supplied-history design is at the floor.", 1),
+        ("2. Adopt natural-context replay as the primary design \u2014 now with verified answers.", 0, True),
+        ("It restores adoption to 72\u201378%, matching the published range, so the measurement has "
+         "room. The remaining gap is correctness labels: without them adoption cannot be split "
+         "into harmful and harmless.", 1),
         ("3. Validate the classifier before claiming type-awareness.", 0, True),
         ("At 55.9% on real pushback, the type label is closer to noise than signal. Either improve "
          "it or drop the type-aware arm to a mechanism study.", 1),

@@ -2,7 +2,7 @@
 
 **Audience:** an agent or collaborator picking this work up cold.
 **Repo:** https://github.com/Devansh63/cs598-pushback-test (public) · work lives under `Devansh/`.
-**Status date:** 2026-10-19. **State:** pilot executed end to end; results are preliminary but reproducible.
+**Status date:** 2026-10-19. **State:** pilot executed end to end, plus a 300-case second corpus parsed, validated and replayed. Results are preliminary but reproducible.
 
 Read this file first, then `Devansh/progress/PROGRESS.md`, then `Devansh/midterm/Group6_Midterm_Plan.md`.
 
@@ -24,6 +24,8 @@ When a user disagrees with a chatbot's **correct** answer, assistants often aban
 | Multi-turn arm | `Devansh/progress/results/multiturn_trials.jsonl` | 240 conversations × 3 rounds |
 | Analysis | `Devansh/progress/results/results_summary.md`, `numbers.json` | tables + CIs |
 | Phase 1 measurement | `Devansh/progress/phase1/measurement.md`, `metrics.json` | 60,000 WildChat conversations |
+| **Second corpus (300 real cases)** | `Devansh/progress/phase1/pushback300/` | 300 cases, 600 replay trials |
+| Prescreen / coding checks | same folder: `results/prescreen_validation.md`, `type_agreement.md` | 100 sampled cases; 2 AI coding passes |
 | Midterm plan / deck | `Devansh/midterm/Group6_Midterm_Plan.md`, `Group6_Midterm_Slides.pptx` | — |
 | PushbackChat re-analysis | `Devansh/midterm/prelim_analysis.py`, `reanalysis.md` | 2,309 events |
 
@@ -94,13 +96,45 @@ Pushback is common but lexically invisible. The earlier 20.7% figure (from `midt
 | Classifier on real pushback | **55.9%** (33/59); `clarification_demand` recall 35% | the type-aware arm rests on a weak detector |
 | Correctness annotator vs 500 human labels | κ **0.255** and **0.242** across two prompts (released pipeline: **0.773**) | **failed validation — extension labels must not be reported** |
 
+### 4.7 Natural-context replay (300 real cases) — the floor was the design
+
+600 trials: 300 real conversations x 2 models, the full original context replayed up to the target turn.
+
+| model | n | adopts user claim | maintains | hedges | adds reasoning |
+|---|---|---|---|---|---|
+| flash | 300 | **78.3%** [73, 83] | 17.3% | 3.3% | 89% |
+| pro | 299 | **71.9%** [67, 77] | 24.1% | 3.0% | 86% |
+
+| setting | adoption / capitulation |
+|---|---|
+| this project's pilot, supplied history, single turn | 0–8% |
+| PushbackChat, 2,309 real events, published | 67.0–77.1% |
+| **this replay** | **78.3% / 71.9%** |
+
+Exploratory, by workbook subtheme: bare disagreement **87.7%** (n=106), task correction 77.3% (110),
+counter-evidence 76.0% (96), inconsistency 75.0% (52), alternative claim 73.6% (106), recheck 70.3%
+(323), **reasoning challenge 63.0%** (92). Substantive reasoning resists adoption; vague disagreement
+invites it. 86–89% of replies add new reasoning, so models rationalise rather than merely agree.
+
+This is the project's central empirical finding: the earlier 0–8% floor was an artifact of the
+supplied-history, single-answer design. Adoption is not harmful adoption — correctness is unlabelled.
+
+### 4.8 The 300-case corpus and its annotations
+
+- 300/300 structurally valid: target always the last user turn, always preceded by an assistant
+  answer; context before the target median 1,650 chars (max 6,467).
+- AI prescreen precision **100/100** [96, 100] on a 100-case sample — AI-to-AI agreement, not human.
+- 10-code scheme, two independent AI passes: nine codes at κ 0.70–0.90; **bare disagreement κ=0.26**,
+  rising to 0.40 with the workbook's own mutual-exclusion rule. Identical code set 37.3% → 47.3%.
+- No human codes, no correctness labels. Source files are **not committed** (not de-identified).
+
 ---
 
 ## 5. What failed, and what not to retry
 
 1. **Correctness annotator for the unlabelled corpus types.** Two prompt versions, κ ≈ 0.25 against human labels, versus 0.773 for the released pipeline's own labels. Root cause: we lack their verification evidence, so most disputes are genuinely undecidable from text alone. The 258 extension pre-labels in `results/correctness_extension.jsonl` are marked **do not report**. To extend coverage you need either the released prompt/evidence or human annotation.
 2. **A lexical-only Phase 1 sampling strategy.** 2% recall. A weighted lexical pre-filter can *seed* candidates; it cannot define the corpus.
-3. **More trials on the same design.** With caving at 2–4%, N cannot rescue the RQ3 comparison.
+3. **More trials on the supplied-history design.** Confirmed by construction, then by §4.7: that design cannot produce caving, so N cannot rescue the RQ3 comparison.
 4. **Single-turn escalation as a way to raise caving.** Measured; flat.
 
 ---
@@ -119,11 +153,12 @@ Pushback is common but lexically invisible. The earlier 20.7% figure (from `midt
 
 ## 7. Where to go next (ranked)
 
-1. **Change the design, not the N.** The floor comes from supplied history + unambiguous items. Two options: (a) let the model generate the initial answer, then push back (closer to natural conversation, and directly comparable to PushbackChat's 24–35% inappropriate-capitulation rate); (b) natural-context replay of real WildChat conversations with no rewriting, which the revised proposal already keeps as a separate arm. (a) is the cheaper controlled test and the one I would run first.
+0. **Correctness labels on the 300 cases — now the binding constraint.** The design question is settled (§4.7): natural-context replay reproduces published adoption rates, so the measurement has room. What is missing is knowing which challenged answers were *correct*, which is what separates harmful capitulation from a model properly accepting a correction. Two humans, documented source per claim; the LLM annotator already failed (κ≈0.25). Until this exists, every adoption number stays descriptive.
+1. **Then re-run the intervention comparison on the replay arm.** `verify_only` vs `verify_type` on real contexts with the shared stored verification. The pilot's null was measured at a floor; this is the version that can detect an effect.
 2. **Fix Phase 1 retrieval.** Replace the OR-of-cues filter with a semantic stage (embedding/LLM judge) over a candidate pool, then measure precision/recall the same way (`phase1/measure_pipeline` pattern: label a candidate sample and a random sample of all pairs). Human-adjudicate a subsample of the labels — currently all labels are single-model.
 3. **Repair or abandon the classifier.** At 55.9% on real pushback it cannot carry RQ3. Either prompt-engineer against a human-coded set, or downgrade RQ3 to a mechanism study of *why* type guidance does nothing.
 4. **Freeze and split.** No dev/held-out split exists. The intervention prompts predate the run, but the measurement instrument was revised after inspecting results. Freeze both, then evaluate on 30 held-out questions.
-5. **Human verification.** `questions_v1.csv` has an empty `human_verified` column; two people must check the 30 factual answers. The response-quality coding is machine-generated and should be replaced by the two-coder blind procedure in the proposal.
+5. **Human verification.** `questions_v1.csv` has an empty `human_verified` column; two people must check the 30 factual answers. The response-quality coding is machine-generated and should be replaced by the two-coder blind procedure in the proposal. The 300-case corpus also needs its AI codes replaced by two human coders, starting with bare disagreement.
 
 ---
 
@@ -150,6 +185,8 @@ basis), `emotional_pushback` (counter-assertion with frustration), `scripted` (f
   PushbackChat release. Work in new files.
 - **Do not commit** raw WildChat conversation dumps: third-party text, ~440 MB, and the proposal
   promises de-identified examples only. The scripts regenerate them.
+- **Do not commit** the `pushback_300` source files or `pushback300/data_local/`: real user turns,
+  not de-identified. Only `results/` aggregates are safe.
 - **Do not report** the annotator extension labels (§5.1).
 - **Do not** describe any result as final. This is a pilot on one vendor's models, 60 questions,
   three reconstructed forms.
@@ -168,4 +205,12 @@ python3 label_states.py && python3 analyze.py           # -> results/results_sum
 python3 run_multiturn.py                               # escalation arm
 python3 validate_state.py && python3 validate_classifier.py
 cd ../phase1 && bash run_all.sh                        # WildChat filter measurement
+
+# second corpus (supply your own copies of the two source files; they are gitignored)
+cd pushback300
+python3 load_pushback300.py --contexts /path/to/pushback_300_contexts.md \
+                            --workbook /path/to/pushback_300_coded.xlsm
+python3 validate_prescreen.py --n 100
+python3 code_types.py ; python3 code_types.py --rule-b
+python3 replay.py                                      # 600 trials
 ```

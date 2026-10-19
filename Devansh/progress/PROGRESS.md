@@ -18,6 +18,9 @@
 | Multi-turn escalation arm (does caving accumulate?) | **done** | `results/multiturn_summary.md` |
 | Correctness annotator to extend the corpus to unlabelled types | **attempted, failed validation** | `results/correctness_report.md` |
 | Phase 1 WildChat precision/recall measurement | **done** | `Phase1/measurement.md`: precision 58.0%, recall 2.0% on 37,857 real pairs |
+| 300-case real corpus parsed + audited | **done** | `phase1/pushback300/`: 300/300 joined, all replay-ready |
+| Prescreen + 10-code reproducibility | **done** | prescreen 100/100; per-code κ 0.26–0.90, bare disagreement weakest |
+| **Natural-context replay (the key result)** | **done** | **72–78% adoption** vs 0–8% in the supplied-history design |
 | Human verification of factual answers, two-coder annotation, demo interface, IRB | **not started** | — |
 
 Cost: the main RQ2+RQ3 run logged **4,421 calls / $0.48** exactly (its own accounting). Across every run in this log — re-labelling, multi-turn, instrument validation, annotation, Phase 1 — the total is approximately **9,600 calls / ~$1.00**, which is an estimate: only the main run self-reports cost. Wall clock for the main run: 8 minutes on 16 workers.
@@ -131,6 +134,9 @@ caving, the intervention comparison is uninformative even with a large N. The fi
 sample size — natural-context replay, harder items, or answers the model must generate itself
 before the pushback arrives.
 
+**Resolved in §8.4.** Replaying the real conversation restores adoption to 72–78%, matching the
+published range. The floor was the design.
+
 ---
 
 ## 6. Phase 1 — the lexical filter recovers about 2% of real pushback
@@ -176,10 +182,86 @@ instrument error (see the file's own assumptions section).
 3. **Scripted vs reconstructed pushback did not differ** (§2), which weakens our own original
    framing of the problem.
 4. **The classifier does not generalize** to real pushback (§4).
+5. **Bare disagreement (B) is not reproducible** across two AI coders (κ=0.26; 0.40 with the
+   workbook's own exclusion rule). That code cannot carry a claim until the definition is sharpened
+   or the code is dropped (§8.3).
 
 ---
 
-## 8. What is still not done
+## 8. A second real-pushback corpus (300 cases) resolves the floor question
+
+The team supplied 300 candidate pushback events from WildChat-1M (revision `7d6490e`) with full
+conversation context, plus a workbook of AI preliminary coding. We parsed, audited, re-coded and
+replayed them. Code: `progress/phase1/pushback300/`. **Raw conversation text is not committed** —
+the material is not de-identified; only aggregates and scripts are in git.
+
+### 8.1 The corpus holds up
+
+300 cases from 14 parquet shards; messages per case 3–11 (median 5); the target turn is always the
+final message, always a user turn, and always preceded by an assistant answer; context before the
+target is median 1,650 chars (max 6,467). Nothing structural blocked replay. There are **no human
+codes and no correctness labels** — `team_notes` is empty in all 300 rows.
+
+### 8.2 The AI prescreen is reliable
+
+| check | result |
+|---|---|
+| prescreen precision (100 sampled cases, independent judge) | **100/100** [96, 100] |
+
+This is agreement between two LLM judges, not against human labels, so it bounds the error rather
+than settling it — but it means the set can be treated as pushback candidates.
+
+### 8.3 The 10-code scheme reproduces, except bare disagreement
+
+Two independent AI passes over all 300 turns, per-code Cohen's κ:
+
+| code | label | κ | | code | label | κ |
+|---|---|---|---|---|---|---|
+| R | recheck request | 0.81 | | A | alternative claim | 0.71 |
+| E | counter-evidence | 0.84 | | T | task/constraint correction | 0.70 |
+| I | inconsistency challenge | 0.83 | | F | frustration | 0.57 (n=3) |
+| P | repeated insistence | 0.90 | | **B** | **bare disagreement** | **0.26** |
+| S | authority/source appeal | 0.89 | | L | reasoning challenge | 0.76 |
+
+Identical code set: 37.3%; mean Jaccard 68.3%. Adding the workbook's own mutual-exclusion rule for
+B (it may not co-occur with A/I/L/E/S/T) raises identical-set agreement to 47.3%, Jaccard to 72.3%,
+and B's κ to **0.40** — better, still the weak point. **B are the definition the two-human pass must
+sharpen or drop.** These κ values are an upper bound: two AI coders share training data and agree
+more than two humans will.
+
+### 8.4 Natural-context replay: the floor was the design, not the models
+
+600 trials (300 cases × 2 models), full original context replayed up to the target turn.
+
+| model | n | adopts user claim | maintains | hedges | deflects | adds reasoning |
+|---|---|---|---|---|---|---|
+| flash | 300 | **78.3%** [73, 83] | 17.3% | 3.3% | 1.0% | 89% |
+| pro | 299 | **71.9%** [67, 77] | 24.1% | 3.0% | 0.7% | 86% |
+
+| setting | adoption / capitulation |
+|---|---|
+| this project's pilot, supplied history, single turn | 0–8% |
+| PushbackChat, 2,309 real events, published | 67.0–77.1% |
+| **this replay** | **78.3% / 71.9%** |
+
+Adoption by workbook subtheme (exploratory): bare disagreement **87.7%** (n=106), task correction
+77.3% (110), counter-evidence 76.0% (96), inconsistency 75.0% (52), alternative claim 73.6% (106),
+recheck request 70.3% (323), **reasoning challenge 63.0%** (92). The pattern is interpretable:
+substantive reasoning resists adoption; bare disagreement invites it.
+
+**This is the project's central empirical finding.** The earlier 0–8% floor was an artifact of the
+supplied-history, single-answer design; the same models adopt real pushback at published rates when
+the conversation is genuine. Any benchmark that supplies the prior answer and uses unambiguous items
+understates adoption by an order of magnitude. Models also mostly *rationalise* rather than merely
+agree: 86–89% of replies add new reasoning.
+
+Caveat repeated: adoption is not harmful adoption. Without correctness labels the subset that
+changed a correct answer to a wrong one is unknown, and that number is what the proposal's
+two-human verification exists to produce.
+
+---
+
+## 9. What is still not done
 
 - Two-human verification of the 30 factual answers (the file has an empty `human_verified` column).
 - Human coding of the 60 response-quality items (the machine coder is a placeholder).
@@ -192,10 +274,20 @@ instrument error (see the file's own assumptions section).
 
 ---
 
-## 9. Reproduce
+## 10. Reproduce
 
 ```bash
-cd "Progress/code"
+# --- pushback_300 corpus (needs the two local source files; see §8)
+cd progress/phase1/pushback300
+python3 load_pushback300.py --contexts /path/to/pushback_300_contexts.md \
+                            --workbook /path/to/pushback_300_coded.xlsm
+python3 validate_prescreen.py --n 100
+python3 code_types.py                # original rule
+python3 code_types.py --rule-b       # with the workbook's mutual-exclusion rule for B
+python3 replay.py                    # 600 trials, natural-context replay
+
+# --- pilot
+cd ../../code
 python3 make_stimuli.py            # questions are built by ../data/make_questions.py
 python3 run_experiments.py         # 2,040 trials, ~8 min, ~$0.48
 python3 label_states.py            # re-derive answer states
@@ -208,12 +300,12 @@ python3 annotate_correctness.py --mode report
 
 Resumable: every stage appends to JSONL and skips completed units, so an interrupted run continues.
 
-## 10. File map
+## 11. File map
 
 ```
-Progress/
+progress/
   PROGRESS.md                      this file
-  Progress_Slides.pptx             9 insert-ready result slides (Illinois template)
+  Progress_Slides.pptx             12 insert-ready result slides (Illinois template)
   build_progress_deck.py           rebuilds the slides
   data/
     make_questions.py              builds + verifies the question set
@@ -238,4 +330,14 @@ Progress/
     state_validation.md            detector agreement
     classifier_validation.md       classifier per-label precision/recall
     correctness_report.md          annotator validation (negative result)
+  phase1/
+    measurement.md                 lexical filter precision/recall on 60,000 conversations
+    metrics.json                   counts and estimates behind that report
+    pushback300/                   second corpus: 300 real cases
+      load_pushback300.py          parse + audit + join (source files stay local)
+      validate_prescreen.py        prescreen reliability
+      code_types.py                10-code reproducibility (two AI passes)
+      replay.py                    natural-context replay, 300 x 2 models
+      results/                     corpus_stats, prescreen_validation, type_agreement,
+                                   replay_summary, replay_numbers
 ```

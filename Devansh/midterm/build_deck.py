@@ -10,6 +10,7 @@ prelim_analysis.py. Slides containing [[FILL: ...]] need group input before pres
 import copy
 import json
 import os
+import sys
 
 from pptx import Presentation
 from pptx.dml.color import RGBColor
@@ -18,6 +19,25 @@ from pptx.enum.text import PP_ALIGN
 from pptx.util import Emu, Inches, Pt
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+def resolve_template(name="Illinois PowerPoint Template 1.pptx"):
+    """Find the course template without hard-coding one machine's layout.
+
+    Order: ILLINOIS_TEMPLATE env var, Devansh/assets/, the course folder, then the
+    previously built deck (which carries the same theme and layouts).
+    """
+    here = os.path.dirname(os.path.abspath(__file__))
+    candidates = [
+        os.environ.get("ILLINOIS_TEMPLATE"),
+        os.path.join(os.path.dirname(here), "assets", name),
+        os.path.join(here, name),
+        os.path.expanduser("~/CS 598 HCI/" + name),
+        "/Users/devanshagrawal/CS 598 HCI/" + name,
+    ]
+    for c in candidates:
+        if c and os.path.exists(c):
+            return c
+    return None
+
 TEMPLATE = os.path.join(os.path.dirname(HERE), "Illinois PowerPoint Template 1.pptx")
 OUTPUT = os.path.join(HERE, "Group6_Midterm_Slides.pptx")
 
@@ -148,7 +168,12 @@ def takeaway(slide, text, top=None):
 
 # ---------------------------------------------------------------- build
 def build():
-    prs = Presentation(TEMPLATE)
+    base = resolve_template()
+    if base is None and os.path.exists(OUT):
+        base = OUT  # reuse the built deck: same theme and layouts
+    if base is None:
+        sys.exit("template not found; set ILLINOIS_TEMPLATE to the course template")
+    prs = Presentation(base)
     blank(prs)
 
     # ---- 1 title

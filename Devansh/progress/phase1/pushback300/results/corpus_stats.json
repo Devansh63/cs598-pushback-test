@@ -1,0 +1,48 @@
+{
+  "n_cases": 300,
+  "n_joined": 300,
+  "n_source_shards": 14,
+  "is_pushback_ai": {
+    "yes": 300
+  },
+  "team_notes_filled": 0,
+  "subtheme_counts_ai": {
+    "A": 53,
+    "B": 53,
+    "E": 48,
+    "F": 3,
+    "I": 26,
+    "L": 46,
+    "P": 21,
+    "R": 162,
+    "S": 4,
+    "T": 55
+  },
+  "theme_counts_ai": {
+    "Challenging answer validity": 286,
+    "Expressing interactional stance": 22,
+    "Correcting task alignment": 55
+  },
+  "messages_per_case": {
+    "min": 3,
+    "median": 5.0,
+    "max": 11
+  },
+  "target_chars": {
+    "median": 62.5,
+    "p90": 206,
+    "max": 1338
+  },
+  "preceding_answer_chars": {
+    "median": 548.0,
+    "p90": 1667,
+    "max": 4262
+  },
+  "context_chars_before_target": {
+    "median": 1650.0,
+    "p90": 4313,
+    "max": 6467
+  },
+  "target_is_last_user_turn": 300,
+  "has_preceding_answer": 300
+}

@@ -4,7 +4,7 @@
 
 When a user disagrees with a chatbot's correct answer, the chatbot often gives in. This project measures that behaviour on pushback that real people actually wrote, and asks whether a response layer that adapts to the *type* of pushback does better than generic fixes.
 
-**Status: pilot executed end to end.** A full Phase 2/Phase 3 pilot (2,040 trials, two models, both directions, four conditions) and a Phase 1 filter measurement (60,000 WildChat conversations) are complete. Results, including negative ones, are in [`progress/PROGRESS.md`](progress/PROGRESS.md).
+**Status: pilot executed end to end, plus a second corpus.** A Phase 2/Phase 3 pilot (2,040 trials), a Phase 1 filter measurement (60,000 WildChat conversations), and a **natural-context replay of 300 real pushback cases** (600 trials) are complete. Results, including negative ones, are in [`progress/PROGRESS.md`](progress/PROGRESS.md).
 
 ---
 
@@ -19,6 +19,9 @@ When a user disagrees with a chatbot's correct answer, the chatbot often gives i
 | 5 | Repeated pushback does not accumulate caving | flat 1.7–3.3% across three escalating rounds |
 | 6 | The proposed lexical filter fails on the open corpus | precision 58.0%, **recall 2.0%**, while ~12.2% of pairs are pushback |
 | 7 | Two instruments failed validation | correctness annotator κ 0.255/0.242 (released pipeline: 0.773); type classifier 55.9% on real pushback |
+| 8 | A 300-case real corpus is codeable and replay-ready | 300/300 structurally valid; prescreen confirmed on 100/100 sampled cases; no correctness labels |
+| 9 | **Natural-context replay: the floor was the design** | **72–78% adoption** on real conversations vs 0–8% in the supplied-history design, matching the published 67–77% |
+| 10 | Pushback type predicts adoption | bare disagreement 87.7% vs reasoning challenge 63.0%; 86–89% of replies add new reasoning |
 
 Finding 5 is the important one for planning: the floor is a property of the design (the initial answer is supplied as history, and the items are unambiguous), not of the models. More trials will not fix it; the design has to change.
 
@@ -55,6 +58,7 @@ progress/                        pilot executed 2026-10-19
     correctness_report.md        annotator validation (negative result)
     numbers.json                 machine-readable headline numbers
   phase1/
+    pushback300/                 second corpus: 300 real cases (parse, prescreen, coding, replay)
     measurement.md               filter precision/recall on 60,000 WildChat conversations
     metrics.json                 all counts and estimates behind that report
     *.py, run_all.sh             the measurement pipeline
