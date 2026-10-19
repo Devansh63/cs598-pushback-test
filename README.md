@@ -8,6 +8,7 @@
 | Folder | Contents |
 |---|---|
 | [`Devansh/`](Devansh/) | Devansh Agrawal's work: the Phase 2/Phase 3 pilot, Phase 1 filter measurement, instrument validation, midterm materials, and the progress log. |
+| [`Sahil/`](Sahil/) | Sahil Sashi's work: WildChat-1M pushback retrieval (618 candidates), codebook v1 + agreement tooling, and two Gemini pilots (easy items; hard real-dispute items with 3-round persistence). |
 | `Master/` | Reserved for the combined group submission. Empty for now. |
 
 Start with [`Devansh/README.md`](Devansh/README.md) for the findings and the repository map, and
