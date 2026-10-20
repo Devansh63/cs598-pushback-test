@@ -1,0 +1,18 @@
+<section id="nextsteps" style="background:#F4F2EE;color:#13294B;font-family:Arial, sans-serif;padding:96px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:12px">
+<p style="font-size:26px;font-weight:700;color:#C8401F;letter-spacing:3px;text-transform:uppercase">Next steps, timeline, feasibility</p>
+<h2 style="font-size:58px;font-weight:700;line-height:1.1">The infrastructure is done; the remaining weeks run the studies on it</h2>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:16px">
+<div style="display:flex;flex-direction:column;gap:10px;background:#13294B;padding:26px;border-radius:16px"><p style="font-size:24px;font-weight:700;color:#FF7A50">THIS WEEK</p><p style="font-size:24px;line-height:1.35;color:#F4F2EE">DeepSeek half of the 2×2; semantic retrieval measured; 50-turn two-coder pilot, κ, codebook freeze</p></div>
+<div style="display:flex;flex-direction:column;gap:10px;background:#FBFBF8;padding:26px;border-radius:16px"><p style="font-size:24px;font-weight:700;color:#C8401F">OCT 27–NOV 2</p><p style="font-size:24px;line-height:1.35;color:#3B4A5E">Hard tier to 30+ held-out items from real disputes; replace 3 ambiguous easy items; verify 30 factual answers (two names)</p></div>
+<div style="display:flex;flex-direction:column;gap:10px;background:#FBFBF8;padding:26px;border-radius:16px"><p style="font-size:24px;font-weight:700;color:#C8401F">NOV 2–13</p><p style="font-size:24px;line-height:1.35;color:#3B4A5E">RQ2 main run: 2 vendors, both tiers, 5 forms incl. real wording, 3 rounds; correctness-labelled replay</p></div>
+<div style="display:flex;flex-direction:column;gap:10px;background:#FBFBF8;padding:26px;border-radius:16px"><p style="font-size:24px;font-weight:700;color:#C8401F">NOV 16–25</p><p style="font-size:24px;line-height:1.35;color:#3B4A5E">RQ3 on the hard tier where there is caving to reduce: published fixes vs verify-only vs type-aware, held-out eval</p></div>
+<div style="display:flex;flex-direction:column;gap:10px;background:#FBFBF8;padding:26px;border-radius:16px"><p style="font-size:24px;font-weight:700;color:#C8401F">NOV 30–DEC 11</p><p style="font-size:24px;line-height:1.35;color:#3B4A5E">Analysis, figures, failure-case review, report, presentation</p></div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+<div style="display:flex;flex-direction:column;gap:10px;background:#FBFBF8;padding:28px 32px;border-radius:16px"><h3 style="font-size:28px;font-weight:700">Why it is feasible</h3><ul style="font-size:24px;line-height:1.4;color:#3B4A5E"><li>Main runs cost about $1 per vendor and 10–20 minutes</li><li>Everything is resumable, logged and regenerable from the repo</li><li>Two people can each run a vendor in parallel</li></ul></div>
+<div style="display:flex;flex-direction:column;gap:10px;background:#FBFBF8;padding:28px 32px;border-radius:16px"><h3 style="font-size:28px;font-weight:700">Risks and open questions</h3><ul style="font-size:24px;line-height:1.4;color:#3B4A5E"><li>RQ3 needs a working type classifier (56% today) or becomes a mechanism study</li><li>Annotation throughput for correctness labels</li><li>Ethics-review status: [IRB status]</li></ul></div>
+</div>
+<aside>Speaker: Zhongyin. The riskiest engineering, data access and a shared harness, is behind us; what remains is coding and running. The one strategic shift: RQ3 moves to the hard tier, because on easy items there is no caving left to reduce and the ablation already showed type-awareness adds nothing there.</aside>
+</section>

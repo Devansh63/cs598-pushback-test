@@ -1,0 +1,18 @@
+<section id="hcai" style="background:#F4F2EE;color:#13294B;font-family:Arial, sans-serif;padding:96px 128px 160px;display:flex;flex-direction:column;gap:36px">
+<div style="display:flex;flex-direction:column;gap:12px">
+<p style="font-size:26px;font-weight:700;color:#C8401F;letter-spacing:3px;text-transform:uppercase">HCAI considerations</p>
+<h2 style="font-size:58px;font-weight:700;line-height:1.1">Answer quality and the user’s ability to challenge the AI, held together</h2>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+<div style="display:flex;flex-direction:column;gap:10px;background:#FBFBF8;padding:28px 32px;border-radius:16px"><p style="font-size:26px;font-weight:700;color:#C8401F">Too much agreement</p><p style="font-size:24px;line-height:1.4;color:#3B4A5E">Reinforces a mistaken belief in the users least able to check. Our data: weak models cave under persistence on hard items, and <b>rationalise</b> the cave, which sounds authoritative.</p></div>
+<div style="display:flex;flex-direction:column;gap:10px;background:#FBFBF8;padding:28px 32px;border-radius:16px"><p style="font-size:26px;font-weight:700;color:#C8401F">Too much resistance</p><p style="font-size:24px;line-height:1.4;color:#3B4A5E">Dismisses users who are right. Our data: PushbackChat models wrongly resist 14–30% of valid corrections; our design measures this side on every run (J).</p></div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;flex:1">
+<div style="display:flex;flex-direction:column;gap:8px;background:#FBFBF8;padding:24px;border-radius:16px"><p style="font-size:24px;font-weight:700">Appropriate trust</p><p style="font-size:23px;line-height:1.35;color:#3B4A5E">Re-check as a neutral task; support reliance based on correctness, not on who pushed harder</p></div>
+<div style="display:flex;flex-direction:column;gap:8px;background:#FBFBF8;padding:24px;border-radius:16px"><p style="font-size:24px;font-weight:700">Autonomy</p><p style="font-size:23px;line-height:1.35;color:#3B4A5E">Valid corrections must still land; a fix that reduces caving by becoming stubborn fails this and is penalised by J</p></div>
+<div style="display:flex;flex-direction:column;gap:8px;background:#FBFBF8;padding:24px;border-radius:16px"><p style="font-size:24px;font-weight:700">Respect</p><p style="font-size:23px;line-height:1.35;color:#3B4A5E">Engage the user’s actual argument; coded on every reply (addresses the user’s evidence, explains the decision)</p></div>
+<div style="display:flex;flex-direction:column;gap:8px;background:#FBFBF8;padding:24px;border-radius:16px"><p style="font-size:24px;font-weight:700">Transparency</p><p style="font-size:23px;line-height:1.35;color:#3B4A5E">Say whether the answer stays, changes or is uncertain, and that a re-check ran; it can still be wrong</p></div>
+</div>
+<div style="background:#13294B;padding:24px 32px;border-radius:16px"><p style="font-size:24px;line-height:1.4;color:#F4F2EE"><b style="color:#FF7A50">Harms we watch for, and data handling:</b> over-trust of a “re-checked” answer; a taxonomy that misses unfamiliar disagreement; apology-without-change as a new form of sycophancy. WildChat text stays local and de-identified; only paraphrased examples and aggregates are published. Design claims are limited to observable behaviour; user perception is future work.</p></div>
+<aside>Speaker: Xuejun. This condenses the four HCAI slides from the first deck and ties each value to a measurement we actually take. The newest point is the rationalised cave: a model that invents a context in which the user is right is being “respectful” in form and harmful in effect, which is why respect is coded as engaging the argument, not as agreeing with it.</aside>
+</section>

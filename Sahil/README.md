@@ -47,7 +47,9 @@ outputs/
   hard_summary.md              pilot 2 tables with question-level bootstrap CIs
 docs/
   Codebook_v1.md               gate codes, 9 multi-label strategies, tone, correctness, decision rules
-  Midterm_slide_notes.md       rubric gap analysis of the group deck + slide text for the new slides
+  Midterm_slide_notes.md       rubric gap analysis of the group deck + slide text, with all pilot numbers
+  Note_to_Devansh.md           the comparison of the two pilots and the merge proposal (2026-10-19)
+  deck/                        the combined 15-slide midterm deck as HTML, speaker notes in each <aside>
 ```
 
 ### Not committed (regenerable)

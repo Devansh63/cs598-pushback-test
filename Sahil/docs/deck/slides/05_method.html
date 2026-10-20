@@ -1,0 +1,26 @@
+<section id="method" style="background:#F4F2EE;color:#13294B;font-family:Arial, sans-serif;padding:96px 128px 160px;display:flex;flex-direction:column;gap:36px">
+<div style="display:flex;flex-direction:column;gap:12px">
+<p style="font-size:26px;font-weight:700;color:#C8401F;letter-spacing:3px;text-transform:uppercase">Methodology</p>
+<h2 style="font-size:60px;font-weight:700;line-height:1.1">Two tracks, two item tiers, both directions, one judge</h2>
+</div>
+<div style="display:flex;gap:24px">
+<div style="flex:1;display:flex;flex-direction:column;gap:10px;background:#FBFBF8;padding:28px;border-radius:16px"><p style="font-size:24px;font-weight:700;color:#C8401F">TRACK A · NATURAL</p><p style="font-size:25px;line-height:1.35;color:#3B4A5E">Real WildChat pushback in its original conversation, coded with the codebook; natural-context replay</p></div>
+<div style="flex:1;display:flex;flex-direction:column;gap:10px;background:#13294B;padding:28px;border-radius:16px"><p style="font-size:24px;font-weight:700;color:#FF7A50">TRACK B · CONTROLLED (PRIMARY)</p><p style="font-size:25px;line-height:1.35;color:#F4F2EE">Verifiable questions, initial answer supplied as history, pushback in one of 5 forms, up to 3 rounds</p></div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;flex:1">
+<div style="display:flex;flex-direction:column;gap:8px;background:#FBFBF8;padding:24px 28px;border-radius:16px">
+<p style="font-size:24px;font-weight:700">Items: two tiers</p>
+<ul style="font-size:24px;line-height:1.4;color:#3B4A5E"><li><b>Easy</b> 60: textbook facts and arithmetic</li><li><b>Hard</b> 20: taken from real WildChat disputes, answers re-derived by hand, 10 dev / 10 held out</li></ul>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px;background:#FBFBF8;padding:24px 28px;border-radius:16px">
+<p style="font-size:24px;font-weight:700">Directions and outcomes</p>
+<ul style="font-size:24px;line-height:1.4;color:#3B4A5E"><li><b>User wrong:</b> holds · hedges · caves</li><li><b>User right:</b> accepts · unresolved · resists</li><li><b>J</b> = P(holds) + P(accepts) − 1, so stubbornness can’t win silently</li></ul>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px;background:#FBFBF8;padding:24px 28px;border-radius:16px">
+<p style="font-size:24px;font-weight:700">Conditions (RQ3)</p>
+<ul style="font-size:24px;line-height:1.4;color:#3B4A5E"><li>none · anti-sycophancy instruction · reframing</li><li><b>verify-only</b> (ablation) vs <b>verify + type-aware</b>, sharing the same verification</li><li>no-pushback control</li></ul>
+</div>
+</div>
+<p style="font-size:24px;line-height:1.4;color:#5B6878">Every reply labelled by three instruments: a frozen LLM judge (gemini-3.6-flash, t = 0, fixed rubric), answer-string markers, and an LLM answer extractor; disagreements reviewed by hand. Wilson intervals; paired contrasts bootstrap whole questions.</p>
+<aside>Speaker: Sahil. The method is the proposal’s, concretised. Two things to say explicitly. First, the initial answer is supplied as conversation history in Track B, so we measure the response to pushback, not answering accuracy; this choice matters for interpreting the floor on the next slides. Second, the verify-only ablation: both verification conditions receive the same stored verification output and differ only by the predicted pushback type and its guidance, which is how we isolate what type-awareness adds. All of this runs on one harness across both vendors, with one frozen judge.</aside>
+</section>

@@ -1,0 +1,25 @@
+<section id="codebook" style="background:#F4F2EE;color:#13294B;font-family:Arial, sans-serif;padding:96px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:12px">
+<p style="font-size:26px;font-weight:700;color:#C8401F;letter-spacing:3px;text-transform:uppercase">Progress 2 · codebook and annotation protocol</p>
+<h2 style="font-size:60px;font-weight:700;line-height:1.1">Codebook v2: multi-label strategies, separate tags, and a correctness protocol</h2>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px">
+<div style="display:flex;flex-direction:column;gap:14px;background:#FBFBF8;padding:32px;border-radius:16px">
+<h3 style="font-size:28px;font-weight:700">Gate · then strategy (multi-label)</h3>
+<ul style="font-size:24px;line-height:1.4;color:#3B4A5E"><li>Is it pushback? Is there a checkable claim?</li><li>Bare doubt · recheck request · alternative answer · counter-evidence · error pointer · authority · inconsistency · self-doubt · task correction</li></ul>
+</div>
+<div style="display:flex;flex-direction:column;gap:14px;background:#FBFBF8;padding:32px;border-radius:16px">
+<h3 style="font-size:28px;font-weight:700">Orthogonal tags</h3>
+<ul style="font-size:24px;line-height:1.4;color:#3B4A5E"><li>Tone: frustration · hostility · politeness</li><li>Persistence (2nd+ push on the same point)</li><li>Jailbreak attempt (system, not content)</li><li>PushbackChat type, so its 500 human labels stay usable</li></ul>
+</div>
+<div style="display:flex;flex-direction:column;gap:14px;background:#FBFBF8;padding:32px;border-radius:16px">
+<h3 style="font-size:28px;font-weight:700">Is the user right?</h3>
+<ul style="font-size:24px;line-height:1.4;color:#3B4A5E"><li>correct · incorrect · mixed · indeterminate</li><li>Two annotators, documented sources; ambiguity reported, never forced</li><li>LLM pre-labels validated at κ = 0.78 against 500 human labels, used only with adjudication</li></ul>
+</div>
+</div>
+<div style="display:flex;gap:24px">
+<div style="flex:1;background:#13294B;padding:26px 32px;border-radius:16px"><p style="font-size:26px;line-height:1.4;color:#F4F2EE"><b style="color:#FF7A50">Reliability test so far:</b> two independent AI passes over 300 real turns. Nine of ten codes κ 0.57–0.90; <b>bare disagreement κ 0.26</b>, 0.40 with an exclusion rule. That code is the one the human pilot must sharpen or drop.</p></div>
+<div style="flex:1;background:#FBFBF8;padding:26px 32px;border-radius:16px"><p style="font-size:26px;line-height:1.4;color:#3B4A5E"><b style="color:#13294B">Next:</b> 50-turn pilot, coded independently by Sahil and Devansh; per-label Cohen’s κ, one adjudication round, then freeze. [κ: fill in after coding]</p></div>
+</div>
+<aside>Speaker: Sahil. Codebook v2 merges my v1 (from reading the 50-turn WildChat sample) with Devansh’s tag design and the 10-code scheme used on the 300-case set. The honest state: the strategy codes reproduce between two AI coders except bare disagreement, which is exactly the most common real form, so the human pilot is where the codebook gets decided. AI-vs-AI kappa is an upper bound; two humans will agree less.</aside>
+</section>
