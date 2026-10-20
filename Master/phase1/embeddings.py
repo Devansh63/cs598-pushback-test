@@ -38,33 +38,60 @@ def main():
     ap.add_argument("--margin", type=float, default=0.0)
     ap.add_argument("--batch", type=int, default=512)
     ap.add_argument("--max-turns", type=int, help="score only the first N frame turns (smoke test)")
+    ap.add_argument("--rethreshold", action="store_true",
+                    help="re-flag semantic_candidate from the saved scores with a new --margin or --top-fraction; no encoding")
+    ap.add_argument("--top-fraction", type=float,
+                    help="instead of --margin, flag the top F of frame turns by score (margin set to that quantile)")
     a = ap.parse_args()
+    if a.rethreshold:
+        df = pd.read_parquet(OUT / "frame_scores.parquet")
+        if a.top_fraction:
+            a.margin = float(np.quantile(df["semantic_score"], 1 - a.top_fraction))
+        df["semantic_candidate"] = df["semantic_score"] > a.margin
+        df.to_parquet(OUT / "frame_scores.parquet", index=False)
+        write_summary(df, a.margin, df["semantic_score"].to_numpy())
+        return
+    import pyarrow.parquet as pq
     from sentence_transformers import SentenceTransformer
-    # column projection: the full frame with text does not fit in 8 GB of RAM
-    df = pd.read_parquet(OUT / "frame.parquet", columns=["conversation_hash", "turn_index", "cue_match", "pushback"])
-    if a.max_turns:
-        df = df.head(a.max_turns).copy()
     model = SentenceTransformer(MODEL)
     pos = model.encode(POS, normalize_embeddings=True)
     neg = model.encode(NEG, normalize_embeddings=True)
-    texts = df["pushback"].str[:512].tolist()
-    scores = np.empty(len(texts), dtype=np.float32)
-    for s in range(0, len(texts), a.batch * 8):
-        emb = model.encode(texts[s: s + a.batch * 8], batch_size=a.batch, normalize_embeddings=True,
-                           show_progress_bar=False)
-        scores[s: s + len(emb)] = (emb @ pos.T).max(1) - (emb @ neg.T).max(1)
-        print(f"scored {min(s + len(emb), len(texts)):,}/{len(texts):,}", flush=True)
-    df["semantic_score"] = scores
+    # Stream the frame in row batches: the full text column does not fit in 8 GB of RAM.
+    pf = pq.ParquetFile(OUT / "frame.parquet")
+    total = pf.metadata.num_rows if not a.max_turns else min(a.max_turns, pf.metadata.num_rows)
+    parts, done = [], 0
+    for rb in pf.iter_batches(batch_size=a.batch * 32, columns=["conversation_hash", "turn_index", "cue_match", "pushback"]):
+        chunk = rb.to_pandas()
+        if a.max_turns:
+            chunk = chunk.head(max(0, a.max_turns - done))
+            if chunk.empty:
+                break
+        texts = [t[:512] for t in chunk["pushback"].tolist()]
+        emb = model.encode(texts, batch_size=a.batch, normalize_embeddings=True, show_progress_bar=False)
+        chunk["semantic_score"] = ((emb @ pos.T).max(1) - (emb @ neg.T).max(1)).astype(np.float32)
+        parts.append(chunk.drop(columns=["pushback"]))
+        done += len(chunk)
+        print(f"scored {done:,}/{total:,}", flush=True)
+        if a.max_turns and done >= a.max_turns:
+            break
+    df = pd.concat(parts, ignore_index=True)
+    scores = df["semantic_score"].to_numpy()
+    if a.top_fraction:
+        a.margin = float(np.quantile(scores, 1 - a.top_fraction))
     df["semantic_candidate"] = df["semantic_score"] > a.margin
     # scores live in a side file keyed by (conversation_hash, turn_index); the frame is never rewritten
-    df.drop(columns=["pushback"]).to_parquet(OUT / "frame_scores.parquet", index=False)
+    df.to_parquet(OUT / "frame_scores.parquet", index=False)
+    write_summary(df, a.margin, scores)
+
+
+def write_summary(df, margin, scores):
     summary = {
-        "model": MODEL, "margin": a.margin, "n_scored": int(len(df)),
+        "model": MODEL, "margin": margin, "n_scored": int(len(df)),
         "n_semantic_candidates": int(df["semantic_candidate"].sum()),
         "n_lexical_candidates": int(df["cue_match"].sum()),
         "n_both": int((df["semantic_candidate"] & df["cue_match"]).sum()),
         "n_semantic_only": int((df["semantic_candidate"] & ~df["cue_match"]).sum()),
-        "score_quantiles": {q: float(np.quantile(scores, q)) for q in (0.5, 0.9, 0.99, 0.999)},
+        "score_quantiles": {q: float(np.quantile(scores, q)) for q in (0.5, 0.9, 0.95, 0.99, 0.999)},
     }
     (OUT / "semantic_summary.json").write_text(json.dumps(summary, indent=2))
     print(json.dumps(summary, indent=2))

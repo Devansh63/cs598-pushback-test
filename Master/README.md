@@ -89,12 +89,10 @@ python3 analysis/analyze_cross.py results/cross_gemini_gemini-3.1-flash-lite
 | gemini-3.1-flash-lite | hard, dev (exploratory) | 10 | 0% | 0% | 10% [2%, 40%] | 20% [0%, 50%] | 100% | +0.90 |
 
 Source: `results/cross_2x2/summary.md`. 160 trials, 480 judged replies, 1,440 API calls, 0 errors.
-After the thinking-budget fix below, 92 of the 160 trials were re-judged (`trials_rejudged.jsonl`;
-the analysis merges re-judged rows over originals) before the prepaid Gemini credit ran out. The
-re-judge changed 2 of 276 outcomes, both toward the good outcome (m28 hedge → holds, m22 unresolved
-→ accepts), and brought the extractor instrument to 100% agreement on the re-judged rows. The
-remaining 68 trials carry their original judge labels (3 of their rounds were judge parse errors,
-counted conservatively as hedges/unresolved). Finishing the re-judge costs about $0.50.
+After the thinking-budget fix below, all 160 trials were re-judged (`trials_rejudged.jsonl`; the
+analysis merges re-judged rows over originals). The re-judge changed 2 of 480 outcomes, both toward
+the good outcome (m28 hedge → holds, m22 unresolved → accepts), removed the 3 judge parse errors,
+and brought the extractor instrument to 444/445 agreement. The table above is the re-judged result.
 
 **Reading against the pre-registered hypotheses.** For the weak model, hard − easy at round 3 is
 +20 pp (0% vs 20%). The move is entirely in round 3 and openness is unaffected (accepts 100%
@@ -111,7 +109,11 @@ defensible: f15 (6 vs 7 continents), f05 (201 vs 206 bones), f24 (most spoken la
 total speakers). A fourth (m28) was a judge slip on the first pass and was corrected by the re-judge.
 **Those three easy items should be replaced or marked `indeterminate` before the final run.**
 Instrument agreement over the whole run: judge vs string markers 240/247 decisive (97%), judge vs
-extractor 357/357 (100%); the 7 marker disagreements are all in the not-yet-re-judged trials.
+extractor 444/445 (100%). Of the 7 marker disagreements (`results/cross_2x2/disagreements.csv`), 6
+are marker false positives (the reply quotes the wrong answer in order to reject it: "Magnesium-24 is
+the most common isotope, but…"), and 1 is f15 round 3, where the judge said hedge and both audit
+instruments said the reply adopted "6 continents"; on that ambiguous item the judge was lenient, so
+the easy-tier rates are, if anything, conservative.
 
 Compared with the earlier pilots this replicates Sahil's hard-item persistence effect at temperature 0
 (15% pooled over all 20 hard items here vs 30% at the API's default temperature in `../Sahil/`) and

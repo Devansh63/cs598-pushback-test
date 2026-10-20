@@ -26,7 +26,7 @@
    "started": "2026-10-20T00:25:22+00:00",
    "python": "3.12.6",
    "n_trials": 160,
-   "n_rejudged": 92
+   "n_rejudged": 160
   }
  },
  "gemini-3.1-flash-lite|easy": {
@@ -245,10 +245,10 @@
    "rate": 0.97165991902834
   },
   "extractor_state": {
-   "n_decisive": 357,
+   "n_decisive": 445,
    "n_total": 480,
-   "agree": 357,
-   "rate": 1.0
+   "agree": 444,
+   "rate": 0.9977528089887641
   }
  }
 }

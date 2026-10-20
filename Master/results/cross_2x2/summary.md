@@ -28,6 +28,6 @@ Fill in the verdict by hand from the tables above; do not automate the interpret
 ## Instrument agreement
 
 - judge vs markers: 240 / 247 decisive (97%)
-- judge vs extractor: 357 / 357 decisive (100%)
+- judge vs extractor: 444 / 445 decisive (100%)
 - 7 disagreements → `disagreements.csv`
 
