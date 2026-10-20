@@ -1,0 +1,22 @@
+<section id="litreview" style="background:#F4F2EE;color:#13294B;font-family:Arial, sans-serif;padding:96px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:12px">
+<p style="font-size:26px;font-weight:700;color:#C8401F;letter-spacing:3px;text-transform:uppercase">Related work · literature review complete</p>
+<h2 style="font-size:60px;font-weight:700;line-height:1.1">What is known, and what we take from it</h2>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;flex:1">
+<div style="display:flex;flex-direction:column;gap:12px;background:#FBFBF8;padding:32px;border-radius:16px">
+<p style="font-size:24px;font-weight:700;color:#C8401F">Answer reversals</p>
+<ul style="font-size:25px;line-height:1.4;color:#3B4A5E"><li>Challenges reverse correct answers (Sharma et al. 2024)</li><li>Repeated and multi-turn pressure (Laban et al. 2023; Hong et al. 2025)</li><li>Casual rebuttals and confident wrong reasoning sway models (Kim &amp; Khashabi 2025)</li><li>Answer changes can go either way (Fanous et al. 2025)</li></ul>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;background:#FBFBF8;padding:32px;border-radius:16px">
+<p style="font-size:24px;font-weight:700;color:#C8401F">Real-user data</p>
+<ul style="font-size:25px;line-height:1.4;color:#3B4A5E"><li>WildChat-1M: real conversation logs (Zhao et al. 2024)</li><li>PushbackChat v1: 2,309 real pushback events, 4-way taxonomy, 500 human correctness labels. We replicated its per-model numbers to 0.1 pp</li><li>Interaction context raises sycophancy (Jain et al. 2026)</li></ul>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;background:#FBFBF8;padding:32px;border-radius:16px">
+<p style="font-size:24px;font-weight:700;color:#C8401F">Mitigation</p>
+<ul style="font-size:25px;line-height:1.4;color:#3B4A5E"><li>Training-side: synthetic data, pinpoint tuning (Wei et al. 2023; Chen et al. 2024)</li><li>Prompt-side: question reframing, third-person framing (Dubois et al. 2026; Hong et al. 2025)</li><li>Social sycophancy beyond answers (ELEPHANT, Cheng et al. 2026)</li></ul>
+</div>
+</div>
+<div style="background:#13294B;padding:28px 36px;border-radius:16px"><p style="font-size:28px;line-height:1.4;color:#F4F2EE"><b style="color:#FF7A50">Takeaways we build on:</b> measure both directions, condition on whether the user is right, and separate <i>re-checking</i> from <i>type-awareness</i> when testing a fix.</p></div>
+<aside>Speaker: Xuejun (did the review). This condenses the three related-work slides from our first deck. The new item is PushbackChat: on its 500 human-labelled events, models cave to wrong pushback 24–35% of the time and wrongly resist a correct correction 14–30% of the time; a single unconditioned “capitulation rate” can see neither number. That justifies the two-direction design.</aside>
+</section>

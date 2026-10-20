@@ -1,0 +1,27 @@
+<section id="results1" data-transition="fade" style="background:#F4F2EE;color:#13294B;font-family:Arial, sans-serif;padding:96px 128px 160px;display:flex;flex-direction:column;gap:36px">
+<div style="display:flex;flex-direction:column;gap:12px">
+<p style="font-size:26px;font-weight:700;color:#C8401F;letter-spacing:3px;text-transform:uppercase">Preliminary results 1 · easy items</p>
+<h2 style="font-size:58px;font-weight:700;line-height:1.1">On easy questions the floor replicates across four models from two vendors</h2>
+</div>
+<div style="display:flex;gap:28px;flex:1">
+<div style="flex:3;display:flex;flex-direction:column;gap:16px">
+<table style="font-size:25px;color:#13294B;background:#FBFBF8">
+<tr><th style="width:30%;text-align:left">Model (60 easy items, 4 forms)</th><th style="width:24%;text-align:left">caves · user wrong</th><th style="width:24%;text-align:left">accepts · user right</th><th style="width:22%;text-align:left">J</th></tr>
+<tr><td>DeepSeek-V4.1-Flash</td><td>1.7–5.0% by form</td><td>95–98%</td><td>+0.90 to +0.95</td></tr>
+<tr><td>DeepSeek-V4-Pro</td><td>1.7–5.0% by form</td><td>95–98%</td><td>+0.90 to +0.95</td></tr>
+<tr><td>gemini-3.8-flash (20 items)</td><td>0 caves, 0 hedges</td><td>100%</td><td>+1.00</td></tr>
+<tr><td>gemini-3.1-flash-lite (20 items)</td><td>0 caves, 2 hedges</td><td>100%</td><td>+0.99</td></tr>
+</table>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+<div style="background:#FBFBF8;padding:22px 26px;border-radius:16px"><p style="font-size:24px;font-weight:700;color:#C8401F">Task type dominates form</p><p style="font-size:24px;line-height:1.35;color:#3B4A5E">Math 0.0% caving on both DeepSeek models; every cave came from factual items (5.6–7.8%)</p></div>
+<div style="background:#FBFBF8;padding:22px 26px;border-radius:16px"><p style="font-size:24px;font-weight:700;color:#C8401F">Scripted ≈ reconstructed</p><p style="font-size:24px;line-height:1.35;color:#3B4A5E">Reconstructed − scripted: −1.7 pp [−6, +3] and −0.8 pp [−3, +2]. The motivating gap did not reproduce here</p></div>
+</div>
+</div>
+<div style="flex:2;display:flex;flex-direction:column;gap:16px">
+<div style="background:#13294B;padding:28px 32px;border-radius:16px"><p style="font-size:24px;font-weight:700;color:#FF7A50">RQ3 on this floor (DeepSeek-Flash, 1,440 trials)</p><ul style="font-size:24px;line-height:1.4;color:#F4F2EE"><li>Type-aware − verify-only: <b>−0.8 pp [−2, +1]</b>, null</li><li>Question reframing <b>hurt</b>: +3.9 pp caving [+1, +7], good outcome −5.0 pp [−8, −2]</li></ul></div>
+<div style="background:#FBFBF8;padding:28px 32px;border-radius:16px"><p style="font-size:24px;font-weight:700;color:#C8401F">Tone still leaks into the wording</p><p style="font-size:24px;line-height:1.35;color:#3B4A5E">Under frustrated pushback, flash-lite apologises while keeping its correct answer in <b>50%</b> of replies (5–10% for other forms)</p></div>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#5B6878">Initial answer supplied as history, single turn, temperature 0 · Wilson intervals; paired differences bootstrap whole questions</p>
+<aside>Speaker: Devansh (results). Three points. One: on easy, unambiguous items with the initial answer in history, current models essentially never cave, and that held on DeepSeek and on Gemini, built independently. Two: on that floor the type-aware layer adds nothing over a plain re-check, and reframing made things worse; a published fix can hurt. Three: the floor is on answers, not on tone; the weaker Gemini model apologises half the time under frustration while holding its answer, which is the social sycophancy ELEPHANT describes. All of this is a pilot: two vendors, 60 items, authored forms.</aside>
+</section>

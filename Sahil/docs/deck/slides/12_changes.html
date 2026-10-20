@@ -1,0 +1,30 @@
+<section id="changes" data-transition="fade" style="background:#F4F2EE;color:#13294B;font-family:Arial, sans-serif;padding:96px 128px 160px;display:flex;flex-direction:column;gap:36px">
+<div style="display:flex;flex-direction:column;gap:12px">
+<p style="font-size:26px;font-weight:700;color:#C8401F;letter-spacing:3px;text-transform:uppercase">Changes since the proposal, and challenges</p>
+<h2 style="font-size:58px;font-weight:700;line-height:1.1">Every change traces to something the data or the review told us</h2>
+</div>
+<div style="display:flex;gap:28px;flex:1">
+<div style="flex:3">
+<table style="font-size:24px;color:#13294B;background:#FBFBF8">
+<tr><th style="width:50%;text-align:left">Change</th><th style="width:50%;text-align:left">Why</th></tr>
+<tr><td>Phase 1 builds on PushbackChat (2,309 events, 500 labels) and validates a taxonomy instead of inventing one</td><td>It exists, it is real WildChat pushback, and we replicated it</td></tr>
+<tr><td>Keyword retrieval → semantic retrieval over the whole frame, measured against a random sample</td><td>Keyword filters: precision 0.58–0.85, recall 0.02–0.03</td></tr>
+<tr><td>Added a <b>hard item tier</b> from real disputes, held-out split, and 3-round persistence</td><td>Easy items hit a floor (0–5% caving) that more trials cannot fix</td></tr>
+<tr><td>Added the <b>verify-only ablation</b> (A4), the no-pushback control, and the joint criterion J</td><td>Review asked us to isolate type-awareness from re-checking; J stops stubbornness from winning</td></tr>
+<tr><td>Codebook: multi-label strategies + separate tags; gate codes; exclusion rule for bare disagreement</td><td>Categories overlapped; ~1 in 5 filtered turns weren’t pushback; bare disagreement κ 0.26</td></tr>
+<tr><td>Three labelling instruments on every reply, one frozen judge across vendors</td><td>The judge truncated silently on a thinking model; only the cross-check caught it</td></tr>
+</table>
+</div>
+<div style="flex:2;display:flex;flex-direction:column;gap:14px;background:#13294B;padding:32px;border-radius:16px">
+<h3 style="font-size:30px;font-weight:700;color:#FF7A50">Open challenges</h3>
+<ul style="font-size:24px;line-height:1.4;color:#F4F2EE">
+<li>The correctness annotator for unlabelled types failed validation (κ 0.25 vs human); extension needs human coding</li>
+<li>The pushback-type classifier is 56% accurate on real pushback; RQ3 rests on it</li>
+<li>Three “easy” items have defensible wrong answers (continents, bones, most-spoken language); 30 factual answers still need two-person verification</li>
+<li>n = 10 held-out hard items: direction, not magnitude</li>
+<li>Reconstruction fidelity: real wording vs authored templates give different answers</li>
+</ul>
+</div>
+</div>
+<aside>Speaker: Devansh. Walk the table left to right; each row is a decision with its evidence. Then the challenges, honestly: two instruments failed validation and we say so, because the RQ3 claim depends on the classifier and we will not report numbers from the failed annotator.</aside>
+</section>

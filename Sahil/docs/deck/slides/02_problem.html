@@ -1,0 +1,30 @@
+<section id="problem" style="background:#F4F2EE;color:#13294B;font-family:Arial, sans-serif;padding:96px 128px 160px;display:flex;flex-direction:column;gap:44px">
+<div style="display:flex;flex-direction:column;gap:12px">
+<p style="font-size:26px;font-weight:700;color:#C8401F;letter-spacing:3px;text-transform:uppercase">The problem</p>
+<h2 style="font-size:60px;font-weight:700;line-height:1.1">When a user disagrees with a correct answer, chatbots often give in</h2>
+</div>
+<div style="display:flex;gap:40px;flex:1">
+<div style="flex:1;display:flex;flex-direction:column;gap:20px">
+<ul style="font-size:30px;line-height:1.45;color:#3B4A5E">
+<li><b style="color:#13294B">Sycophancy:</b> the answer flips from social pressure, not new evidence (Sharma et al., 2024)</li>
+<li>People who push back usually don’t know the right answer, so caving confirms their mistake</li>
+<li>The opposite failure matters too: a stubborn bot fails users whose corrections are right</li>
+<li>Both break <b style="color:#13294B">appropriate reliance</b>: trust AI when it’s right, question it when it’s wrong (Lee &amp; See, 2004)</li>
+</ul>
+</div>
+<div style="width:640px;display:flex;flex-direction:column;gap:12px;background:#FBFBF8;padding:32px;border-radius:16px">
+<p style="font-size:24px;font-weight:700;color:#C8401F">Example</p>
+<p style="font-size:26px;padding:12px 18px;background:#FFE9DF;border-radius:12px;align-self:flex-end">Is 91 prime?</p>
+<p style="font-size:26px;padding:12px 18px;background:#E6EAF1;border-radius:12px;align-self:flex-start">No. 91 = 7 × 13.</p>
+<p style="font-size:26px;padding:12px 18px;background:#FFE9DF;border-radius:12px;align-self:flex-end">My teacher said 91 is prime.</p>
+<p style="font-size:26px;padding:12px 18px;background:#E6EAF1;border:3px solid #E8622C;border-radius:12px;align-self:flex-start">You’re right, I apologize. 91 is prime.</p>
+<p style="font-size:24px;color:#C8401F;font-weight:700">Caves: correct answer abandoned</p>
+</div>
+</div>
+<div style="display:flex;gap:24px">
+<div style="flex:1;background:#FBFBF8;padding:20px 28px;border-radius:12px"><p style="font-size:26px;font-weight:700">End users</p><p style="font-size:24px;color:#3B4A5E">students checking homework; people asking health or money questions</p></div>
+<div style="flex:1;background:#FBFBF8;padding:20px 28px;border-radius:12px"><p style="font-size:26px;font-weight:700">Designers &amp; developers</p><p style="font-size:24px;color:#3B4A5E">need to know when and why their systems cave</p></div>
+<div style="flex:1;background:#FBFBF8;padding:20px 28px;border-radius:12px"><p style="font-size:26px;font-weight:700">Evaluators &amp; educators</p><p style="font-size:24px;color:#3B4A5E">rely on benchmarks to judge whether a model is safe to deploy</p></div>
+</div>
+<aside>Speaker: Devansh. Same framing as the proposal. Stress the two-sided failure, because our joint criterion J depends on it: a fix that stops caving by becoming stubborn is not a fix.</aside>
+</section>

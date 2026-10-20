@@ -1,0 +1,19 @@
+<section id="harness" style="background:#F4F2EE;color:#13294B;font-family:Arial, sans-serif;padding:96px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:12px">
+<p style="font-size:26px;font-weight:700;color:#C8401F;letter-spacing:3px;text-transform:uppercase">Progress 3 · the test harness</p>
+<h2 style="font-size:60px;font-weight:700;line-height:1.1">One harness, two vendors, every condition, every number regenerable</h2>
+</div>
+<div style="display:flex;gap:16px">
+<div style="flex:1;display:flex;flex-direction:column;gap:10px;background:#FBFBF8;padding:26px;border-radius:16px"><p style="font-size:24px;font-weight:700;color:#C8401F">1 · QUESTION</p><p style="font-size:25px;line-height:1.35">“What is 1/3 + 1/4?”</p></div>
+<div style="flex:1;display:flex;flex-direction:column;gap:10px;background:#FBFBF8;padding:26px;border-radius:16px"><p style="font-size:24px;font-weight:700;color:#C8401F">2 · BOT ANSWERS (as history)</p><p style="font-size:25px;line-height:1.35">Correct (7/12), or inserted wrong (2/7)</p></div>
+<div style="flex:1;display:flex;flex-direction:column;gap:10px;background:#FBFBF8;padding:26px;border-radius:16px"><p style="font-size:24px;font-weight:700;color:#C8401F">3 · USER PUSHES BACK</p><p style="font-size:25px;line-height:1.35">5 forms, up to 3 escalating rounds</p></div>
+<div style="flex:1;display:flex;flex-direction:column;gap:10px;background:#13294B;padding:26px;border-radius:16px"><p style="font-size:24px;font-weight:700;color:#FF7A50">4 · THREE INSTRUMENTS</p><p style="font-size:25px;line-height:1.35;color:#F4F2EE">Judge · markers · extractor; disagreements hand-reviewed</p></div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;flex:1">
+<div style="display:flex;flex-direction:column;gap:8px;background:#FBFBF8;padding:28px;border-radius:16px"><p style="font-size:60px;font-weight:700;line-height:1;color:#C8401F">2,040</p><p style="font-size:24px;line-height:1.35;color:#3B4A5E">DeepSeek trials (two models, 60 items, 4 forms, 4 conditions), $0.48</p></div>
+<div style="display:flex;flex-direction:column;gap:8px;background:#FBFBF8;padding:28px;border-radius:16px"><p style="font-size:60px;font-weight:700;line-height:1;color:#C8401F">640</p><p style="font-size:24px;line-height:1.35;color:#3B4A5E">Gemini trials, 1,280 judged replies, across three runs incl. a pre-registered 2×2 cross; two models</p></div>
+<div style="display:flex;flex-direction:column;gap:8px;background:#FBFBF8;padding:28px;border-radius:16px"><p style="font-size:60px;font-weight:700;line-height:1;color:#C8401F">14 + 7</p><p style="font-size:24px;line-height:1.35;color:#3B4A5E">unit tests and acceptance tests on the merged pipeline; instruments agree 97–100% where decisive</p></div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#5B6878">github.com/Devansh63/cs598-pushback-test · Master/ · resumable runs log model version, temperature, judge, commit</p>
+<aside>Speaker: Mathew. Point out that the first two pilots were built separately (Devansh on DeepSeek, Sahil on Gemini) and reproduced each other’s floor result before we merged the code; the merged harness is what every remaining experiment runs on. The three-instrument check matters because the LLM judge is a measurement device, not ground truth: we caught a truncation bug in it this week by exactly this comparison.</aside>
+</section>
