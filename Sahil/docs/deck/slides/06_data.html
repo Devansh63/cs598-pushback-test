@@ -1,0 +1,23 @@
+<section id="data" data-transition="fade" style="background:#F4F2EE;color:#13294B;font-family:Arial, sans-serif;padding:96px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:12px">
+<p style="font-size:26px;font-weight:700;color:#C8401F;letter-spacing:3px;text-transform:uppercase">Progress 1 · real pushback data</p>
+<h2 style="font-size:60px;font-weight:700;line-height:1.1">Two real-pushback corpora, and a filter we measured instead of trusting</h2>
+</div>
+<div style="display:flex;gap:40px;flex:1">
+<div style="flex:3;display:flex;flex-direction:column;gap:8px">
+<div style="display:flex;align-items:center;gap:28px;background:#FBFBF8;padding:12px 26px;border-radius:12px"><p style="font-size:34px;font-weight:700;width:230px">837,989</p><p style="font-size:26px;color:#3B4A5E">WildChat-1M conversations</p></div>
+<div style="display:flex;align-items:center;gap:28px;background:#FBFBF8;padding:12px 26px;border-radius:12px"><p style="font-size:34px;font-weight:700;width:230px">506,412</p><p style="font-size:26px;color:#3B4A5E">English user turns right after an assistant answer: <b>the frame</b></p></div>
+<div style="display:flex;align-items:center;gap:28px;background:#FBFBF8;padding:12px 26px;border-radius:12px"><p style="font-size:34px;font-weight:700;width:230px">1,898</p><p style="font-size:26px;color:#3B4A5E">match a disagreement cue, minus instruction and quiz prompts</p></div>
+<div style="display:flex;align-items:center;gap:28px;background:#13294B;padding:12px 26px;border-radius:12px"><p style="font-size:34px;font-weight:700;width:230px;color:#FF7A50">813</p><p style="font-size:26px;color:#F4F2EE">in a math or factual context, with the original reply kept</p></div>
+<div style="display:flex;align-items:center;gap:28px;background:#FBFBF8;padding:12px 26px;border-radius:12px"><p style="font-size:34px;font-weight:700;width:230px">2,309</p><p style="font-size:26px;color:#3B4A5E">PushbackChat v1 events (public, from WildChat) with 500 human correctness labels; plus 300 cases with full context</p></div>
+</div>
+<div style="flex:2;display:flex;flex-direction:column;gap:18px;background:#FBFBF8;padding:36px;border-radius:16px">
+<h3 style="font-size:30px;font-weight:700">Is the keyword filter any good?</h3>
+<p style="font-size:26px;line-height:1.4;color:#3B4A5E">Measured on 150 candidates + 150 random frame turns, Devansh’s protocol:</p>
+<p style="font-size:26px;line-height:1.4;color:#3B4A5E"><b style="color:#13294B">Precision 0.85</b> [0.78, 0.90] · <b style="color:#C8401F">recall 0.026</b> [0.01, 0.07]</p>
+<p style="font-size:26px;line-height:1.4;color:#3B4A5E">Implied pushback prevalence <b>12.3%</b> of follow-up turns (Devansh’s independent sample: 12.2%). Pushback is common and lexically invisible, so retrieval moves to an embedding stage over the whole frame.</p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#5B6878">Zhao et al. 2024 · labels are LLM pre-labels pending human adjudication · 62.9% of the original ChatGPT replies to the 813 open by conceding (unconfirmed candidates; conflates valid corrections)</p>
+<aside>Speaker: Mathew (progress). Two corpora: our own WildChat pipeline, now kept as a full frame so recall can be measured against a random sample, and the public PushbackChat release Devansh found and replicated. The number to dwell on is recall: 2.6% here, 2.0% on Devansh’s cue list. Real pushback mostly doesn’t use the words we expected. That is a negative result and we report it as one; it changed the plan (semantic retrieval). The 62.9% concession figure is descriptive only.</aside>
+</section>
