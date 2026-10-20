@@ -1,0 +1,8 @@
+{
+  "_note": "Mirrors Devansh/progress/phase1/measurement.md: 159 cue-matched and 37,698 other frame turns; 150 + 150 labeled; 87 and 18 positives. Expected precision 0.580, HT recall 0.0200 (92.22 / 4615.98), Kish n_eff 151.3.",
+  "n_cand_frame": 159,
+  "n_non_frame": 37698,
+  "cand_labels_counts": {"pushback_disagreement": 87, "neutral_question": 13, "preference_change": 1, "other": 49},
+  "non_labels_counts": {"pushback_disagreement": 18, "neutral_question": 40, "preference_change": 12, "other": 80},
+  "expected": {"precision": 0.580, "recall": 0.0200, "n_eff_kish": 151.3, "estimated_tp_in_frame": 92.22, "estimated_fn_in_frame": 4523.76}
+}

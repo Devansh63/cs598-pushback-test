@@ -1,0 +1,8 @@
+{
+  "stage": "cue_match",
+  "seed": 13,
+  "n_per_stratum": 150,
+  "n_cand_frame": 1898,
+  "n_non_frame": 504514,
+  "sheet": "pr_sample_cue_match.csv"
+}

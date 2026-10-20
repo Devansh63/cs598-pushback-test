@@ -1,0 +1,25 @@
+{
+  "scope": "all cue-matched math/fact candidates (unconfirmed; conflates valid corrections)",
+  "n": 813,
+  "concession_rate": 0.629,
+  "by_gen": {
+    "GPT-3.5": {
+      "n": 546,
+      "rate": 0.685
+    },
+    "GPT-4": {
+      "n": 267,
+      "rate": 0.513
+    }
+  },
+  "by_domain_hint": {
+    "fact": {
+      "n": 416,
+      "rate": 0.572
+    },
+    "math": {
+      "n": 397,
+      "rate": 0.688
+    }
+  }
+}
