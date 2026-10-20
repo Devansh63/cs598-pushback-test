@@ -29,15 +29,18 @@ def variant_index(qid):
     return int(hashlib.sha256(qid.encode()).hexdigest()[:4], 16)
 
 
-def plan_trials(questions, forms, form_names, directions, conditions):
+def plan_trials(questions, forms, form_names, directions, conditions, initial_mode="supplied"):
+    """initial_mode 'supplied': the initial answer is inserted as history (both directions planned).
+    'generated': the model answers the question itself first; the direction follows from whether
+    that answer was correct (the user then pushes the other way). Planned as direction 'auto'."""
     trials = []
     for q in questions:
-        for direction in directions:
-            initial, claim = lib.direction_setup(q, direction)
+        for direction in (["auto"] if initial_mode == "generated" else directions):
+            initial, claim = lib.direction_setup(q, direction) if direction != "auto" else (None, None)
             for form in form_names:
                 if form == "real" and not q.get("real_template"):
                     continue
-                push = lib.pushback_text(form, q, claim, forms, variant_index(q["id"]))
+                push = lib.pushback_text(form, q, claim, forms, variant_index(q["id"])) if claim else None
                 for cond in conditions:
                     pb = NO_PUSHBACK_PROMPT if cond == "no_pushback" else push
                     trials.append({"question_id": q["id"], "tier": q["tier"], "domain": q["domain"],
@@ -55,6 +58,25 @@ def plan_trials(questions, forms, form_names, directions, conditions):
         t["trial_id"] = f"{t['question_id']}|{t['direction']}|{t['form']}|{t['condition']}"
         out.append(t)
     return out
+
+
+def generate_initial(provider, model, temperature, t, forms):
+    """'generated' mode: ask the model the question first; the direction follows from its answer.
+    Returns False when the answer matched neither marker set (the trial is recorded as skipped)."""
+    from harness.judge import marker_state, markers_fired
+    q = t["q"]
+    reply, meta = provider.chat([{"role": "system", "content": lib.SYSTEM}, {"role": "user", "content": q["question"]}],
+                                model=model, temperature=temperature)
+    state = marker_state(markers_fired(reply, q))
+    t["generated_initial"] = {"reply": reply, "state": state, "model_version": meta["model_version"]}
+    if state == "ambiguous":
+        return False
+    t["direction"] = "user_wrong" if state == "correct" else "user_right"
+    t["initial_answer"] = reply
+    t["claim"] = q["wrong_short"] if state == "correct" else q["correct_short"]
+    if t["condition"] != "no_pushback":
+        t["pushback"] = lib.pushback_text(t["form"], q, t["claim"], forms, variant_index(q["id"]))
+    return True
 
 
 def get_verification(provider, model, t):
@@ -119,13 +141,15 @@ def main(argv=None):
     ap.add_argument("--limit", type=int)
     ap.add_argument("--workers", type=int, default=6)
     ap.add_argument("--no-extractor", action="store_true")
+    ap.add_argument("--initial", choices=["supplied", "generated"], default="supplied",
+                    help="supplied: initial answer inserted as history (default); generated: the model answers first")
     a = ap.parse_args(argv)
 
     provider = get_provider(a.provider)
     judge = provider if (a.judge_provider == a.provider) else get_provider(a.judge_provider)
     forms = lib.load_forms()
     qs = lib.load_questions(tiers=a.tiers.split(","), splits=a.splits.split(","))
-    trials = plan_trials(qs, forms, a.forms.split(","), a.directions.split(","), a.conditions.split(","))
+    trials = plan_trials(qs, forms, a.forms.split(","), a.directions.split(","), a.conditions.split(","), a.initial)
     if a.limit:
         trials = trials[: a.limit]
     run_id = a.run_id or f"pilot_{a.provider}_{a.model}"
@@ -134,8 +158,8 @@ def main(argv=None):
         "kind": "single_turn", "run_id": run_id, "provider": a.provider, "model": a.model,
         "temperature": a.temperature, "judge_provider": a.judge_provider, "judge_model": a.judge_model,
         "tiers": a.tiers, "splits": a.splits, "forms": a.forms, "conditions": a.conditions,
-        "directions": a.directions, "n_trials_planned": len(trials), "seed": "n/a (temperature 0)",
-        "forms_file": "data/pushback_forms_v1.json", "questions_file": "data/questions_v1.jsonl"})
+        "directions": a.directions, "initial": a.initial, "n_trials_planned": len(trials),
+        "seed": "n/a (temperature 0)", "forms_file": "data/pushback_forms_v1.json", "questions_file": "data/questions_v1.jsonl"})
     path = d / "trials.jsonl"
     done = lib.load_jsonl(path)
     todo = [t for t in trials if t["trial_id"] not in done]
@@ -143,6 +167,11 @@ def main(argv=None):
 
     def work(t):
         q = t["q"]
+        if a.initial == "generated" and not generate_initial(provider, a.model, a.temperature, t, forms):
+            lib.append_jsonl(path, {"trial_id": t["trial_id"], "run_id": run_id, "question_id": q["id"],
+                                    "skipped": "generated initial answer matched neither marker set",
+                                    "generated_initial": t["generated_initial"], "ts": lib.now()})
+            return
         extra, verification, predicted = condition_extra(provider, a.model, t, forms)
         history = lib.build_messages(q, t["initial_answer"], [("user", t["pushback"])], extra=extra)
         reply, meta = provider.chat(history, model=a.model, temperature=a.temperature)
@@ -152,6 +181,7 @@ def main(argv=None):
                                  "form", "condition", "claim", "initial_answer")}
         row.update(run_id=run_id, provider=a.provider, model=a.model, model_version=meta["model_version"],
                    temperature=a.temperature, judge_provider=a.judge_provider, judge_model=a.judge_model,
+                   initial_mode=a.initial, generated_initial=t.get("generated_initial"),
                    system_extra=extra, verification=verification, predicted_type=predicted,
                    rounds=[dict(round=1, pushback=t["pushback"], reply=reply,
                                 finish_reason=meta["finish_reason"], **res)],

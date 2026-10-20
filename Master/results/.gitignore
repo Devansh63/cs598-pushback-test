@@ -8,3 +8,7 @@ phase1/pilot*_*.csv
 phase1/pr_sample_*.csv
 # smoke-test runs
 _smoke_*/
+# Track A: third-party conversation text and the PushbackChat download stay local
+trackA/data_local/
+trackA/pushbackchat_cache/
+trackA/replay_*/trials.jsonl

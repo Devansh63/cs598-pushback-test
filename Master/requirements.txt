@@ -7,3 +7,5 @@ pytest>=8
 # Phase 1 only (WildChat download, embedding stage)
 huggingface_hub>=0.24
 sentence-transformers>=3.0
+# Track A only (pushback_300 workbook)
+openpyxl>=3.1
