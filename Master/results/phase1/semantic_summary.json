@@ -1,0 +1,16 @@
+{
+  "model": "sentence-transformers/all-MiniLM-L6-v2",
+  "margin": 0.11664748936891556,
+  "n_scored": 506412,
+  "n_semantic_candidates": 25321,
+  "n_lexical_candidates": 1898,
+  "n_both": 597,
+  "n_semantic_only": 24724,
+  "score_quantiles": {
+    "0.5": -0.052618078887462616,
+    "0.9": 0.07526244968175888,
+    "0.95": 0.11664748936891556,
+    "0.99": 0.2090808004140854,
+    "0.999": 0.3452361822128296
+  }
+}

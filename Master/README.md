@@ -129,6 +129,83 @@ python3 phase1/measure_pr.py compute results/phase1/pr_sample_cue_match.csv --st
 LLM pre-labels; human adjudication pending (same status as Devansh's 0.58 / 0.020 measurement, which
 `tests/test_measure_pr.py` reproduces from a fixture). Pushback is common and lexically invisible.
 
+**Phase 1 semantic stage, top 5% by score** (`semantic_summary.json`,
+`pr_metrics_semantic_candidate.json`). The threshold rule was fixed before any label existed.
+
+```bash
+python3 phase1/embeddings.py --batch 256 --top-fraction 0.05   # scores all 506,412 turns
+python3 phase1/measure_pr.py sample --stage semantic_candidate --n 150 --seed 13
+python3 phase1/measure_pr.py prelabel results/phase1/pr_sample_semantic_candidate.csv \
+    --provider deepseek --model deepseek-flash      # Gemini key unavailable on this machine
+python3 phase1/measure_pr.py compute results/phase1/pr_sample_semantic_candidate.csv \
+    --stage semantic_candidate
+```
+
+| metric | estimate | 95% Wilson |
+|---|---|---|
+| precision | **0.233** (35 / 150) | [0.173, 0.307] |
+| recall (HT-weighted, n_eff 165.7) | **0.093** | [0.057, 0.147] |
+| implied pushback prevalence in the frame | **0.1257** | — |
+| candidate yield | 50 per 1,000 frame turns | — |
+
+Frame after embedding: 25,323 candidates (597 also pass the cue stage), 481,109 non-candidates.
+
+The semantic stage buys **3.6× the lexical recall (0.093 vs 0.026) at 3.6× worse precision
+(0.233 vs 0.847)**, and its implied prevalence independently reproduces the other two estimates
+(0.126 vs 0.122 and 0.123). **Retrieval is the bottleneck**: 300 confirmed turns needs roughly
+1,300 semantic candidates, so Phase 1 still needs a threshold sweep (re-threshold the saved scores
+with `--rethreshold`, resample and relabel at each point) or a better scorer. **Caveat:** these are
+pre-labels from `deepseek-flash`; the cue-stage measurement used the Gemini judge. Re-run
+`prelabel --provider gemini --model gemini-3.6-flash` then `compute` for a like-for-like comparison.
+
+**Generated-initial mode** (`results/generated_initial_deepseek_easy/`, 60 easy questions, scripted
+form). The model answered the question itself first and the direction followed from whether it was
+right: it answered **60/60 correctly** and **held on 60/60** after the pushback. Supplied history is
+therefore *not* the cause of the floor on easy items — consistent with the cross below, where the
+strong model never moves regardless of tier.
+
+**The 2×2 cross, DeepSeek half — provisional, judged with `deepseek-flash`.** 160 trials, 480 replies,
+0 errors, 1,440 calls (`results/cross_deepseek_deepseek-flash/trials.jsonl`). Re-judge with the frozen
+Gemini judge before quoting these as official; the extractor agrees with the judge on 445/445 decisive
+replies and the judge agrees with the markers on 109/111, so the direction will not survive as anything
+but flat.
+
+```bash
+python3 harness/run_multiround.py --provider deepseek --model deepseek-flash \
+  --judge-provider deepseek --judge-model deepseek-flash \
+  --tiers easy,hard --splits dev,heldout --forms scripted --conditions none --rounds 3 \
+  --run-id cross_deepseek_deepseek-flash --workers 10
+```
+
+| model | tier | items | caves r1 | caves r2 | **caves r3** (Wilson) | ever left correct | accepts r3 | J r3 |
+|---|---|---|---|---|---|---|---|---|
+| deepseek-flash | easy | 60 | 0% | 0% | **0%** [0%, 6%] | 0% [0%, 0%] | 100% | +1.00 |
+| deepseek-flash | **hard, held-out** | 10 | 0% | 0% | **0%** [0%, 28%] | 0% [0%, 0%] | 100% | +1.00 |
+| deepseek-flash | hard, dev (exploratory) | 10 | 0% | 0% | 0% [0%, 28%] | 0% [0%, 0%] | 100% | +1.00 |
+
+**Verdict against the four pre-registered hypotheses** (the analyzer deliberately leaves this to us):
+
+- **H-difficulty — not supported.** Hard items do not move both models: the strong model is flat on
+  both tiers, so difficulty alone does not break the floor.
+- **H-model — supported.** Only `gemini-3.1-flash-lite` moves: 0% → 20% round-3 caving on hard
+  held-out items, versus 0% → 0% for `deepseek-flash`.
+- **Interaction — supported, in its strongest form.** The weak model moves more on hard items; the
+  strong model does not move at all.
+- **Null — rejected.** Something moves, and it is model-specific.
+
+The honest sentence is therefore: **hard items plus persistence move the weaker model, not the
+stronger one.** That supersedes both "the floor was the design" and "difficulty is the cause": the
+floor is a property of easy items *for strong models*, and item difficulty only pays off where the
+model has room to be unsure. n = 10 held-out items, so this is directional, not confirmatory.
+
+**Three easy items replaced** because their "wrong" answer was defensible: f05 (bones → heart
+chambers, 4), f15 (continents → capital of Spain), f24 (most native speakers → largest South American
+country). The Gemini half in this folder predates the replacement, so the official cross needs the
+Gemini half re-run (160 trials, ~$1) after this branch lands. `data/verify_facts.py` records one
+independent web-evidence pass over all 30 factual answers (`results/verification/facts_pass_devansh.csv`):
+30/30 supported, with the deciding quote and source per item; `human_verified` still needs a second
+name.
+
 ### 4b. Pilot results carried in (pointers; not re-run here)
 
 | Finding | Number | Source |
@@ -192,7 +269,7 @@ can be repeated on Gemini and compared with Devansh's DeepSeek numbers under one
 
 | # | test | status |
 |---|---|---|
-| 1 | `run_pilot --provider deepseek --limit 4` | live needs `DEEPSEEK_API_KEY` (Devansh); mock variant passes |
+| 1 | `run_pilot --provider deepseek --limit 4` | **pass (live, 2026-10-20, DeepSeek judge)**: 4 trials, unified schema, 12 calls, 0 errors |
 | 2 | `run_pilot --provider gemini --limit 4` | pass (live, 2026-10-20) |
 | 3 | `run_multiround --limit 2` → 3 rounds, labelled | pass (live) |
 | 4 | metrics reproduce a synthetic fixture's J and CIs | pass |

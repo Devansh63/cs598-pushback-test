@@ -103,10 +103,12 @@ def get_type(provider, model, t, forms):
         definitions=defs, initial=t["initial_answer"], pushback=t["pushback"])}],
         model=model, temperature=0.0, json_mode=True, max_tokens=800)
     c = lib.parse_json(raw) or {}
-    label = c.get("label")
-    if label not in forms["form_definitions"]:
-        label = t["form"] if t["form"] in forms["form_definitions"] else None   # fall back to intended type
-    c = dict(c, label_used=label)
+    raw_label = c.get("label")
+    # Never fall back to the intended form: that would hand the type-aware condition its own
+    # ground truth whenever the classifier fails, silently inflating verify_type. Unknown -> no
+    # type guidance, so verify_type degrades to verify_only for that trial and that is recorded.
+    label = raw_label if raw_label in forms["form_definitions"] else None
+    c = dict(c, label_used=label, classifier_label=raw_label)
     with _cache_lock:
         _class_cache[key] = c
     return c
