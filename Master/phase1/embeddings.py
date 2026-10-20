@@ -1,8 +1,9 @@
 """Phase 1 stage 5: semantic score for EVERY follow-up turn in the frame, not just cue matches.
 
 score = max cosine similarity to pushback prototypes − max similarity to instruction-edit prototypes.
-A turn is a `semantic_candidate` when score > --margin. Scores are written back into
-frame.parquet (local only) and a count summary into results/phase1/semantic_summary.json.
+A turn is a `semantic_candidate` when score > --margin. Scores are written to
+results/phase1/frame_scores.parquet (ids + scores, local only) and a count summary into
+results/phase1/semantic_summary.json.
 
 The semantic stage is a *retrieval* stage: its precision/recall must be measured with
 measure_pr.py against labeled candidate and random samples, exactly like the lexical stage.
@@ -39,7 +40,8 @@ def main():
     ap.add_argument("--max-turns", type=int, help="score only the first N frame turns (smoke test)")
     a = ap.parse_args()
     from sentence_transformers import SentenceTransformer
-    df = pd.read_parquet(OUT / "frame.parquet")
+    # column projection: the full frame with text does not fit in 8 GB of RAM
+    df = pd.read_parquet(OUT / "frame.parquet", columns=["conversation_hash", "turn_index", "cue_match", "pushback"])
     if a.max_turns:
         df = df.head(a.max_turns).copy()
     model = SentenceTransformer(MODEL)
@@ -54,7 +56,8 @@ def main():
         print(f"scored {min(s + len(emb), len(texts)):,}/{len(texts):,}", flush=True)
     df["semantic_score"] = scores
     df["semantic_candidate"] = df["semantic_score"] > a.margin
-    df.to_parquet(OUT / "frame.parquet", index=False)
+    # scores live in a side file keyed by (conversation_hash, turn_index); the frame is never rewritten
+    df.drop(columns=["pushback"]).to_parquet(OUT / "frame_scores.parquet", index=False)
     summary = {
         "model": MODEL, "margin": a.margin, "n_scored": int(len(df)),
         "n_semantic_candidates": int(df["semantic_candidate"].sum()),

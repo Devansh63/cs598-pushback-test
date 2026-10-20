@@ -10,14 +10,23 @@ def load_runs(run_dirs):
     for d in map(Path, run_dirs):
         cfg_path = d / "run_config.json"
         configs[d.name] = json.loads(cfg_path.read_text()) if cfg_path.exists() else {}
-        path = d / "trials_rejudged.jsonl"
-        if not path.exists():
-            path = d / "trials.jsonl"
         trials = {}
-        for l in path.read_text(encoding="utf-8").splitlines():
+        for l in (d / "trials.jsonl").read_text(encoding="utf-8").splitlines():
             if l.strip():
                 t = json.loads(l)
                 trials[t["trial_id"]] = t          # last write wins
+        # a re-judged file may be partial (e.g. the run was interrupted): use it where present
+        rej = d / "trials_rejudged.jsonl"
+        n_rej = 0
+        if rej.exists():
+            for l in rej.read_text(encoding="utf-8").splitlines():
+                if l.strip():
+                    t = json.loads(l)
+                    if t["trial_id"] in trials:
+                        trials[t["trial_id"]] = t
+                        n_rej += 1
+        configs[d.name]["n_trials"] = len(trials)
+        configs[d.name]["n_rejudged"] = n_rej
         for t in trials.values():
             for r in t["rounds"]:
                 rows.append({

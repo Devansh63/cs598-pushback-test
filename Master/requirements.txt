@@ -1,0 +1,9 @@
+# Harness + analysis
+requests>=2.31
+numpy>=1.26
+pandas>=2.0
+pyarrow>=14
+pytest>=8
+# Phase 1 only (WildChat download, embedding stage)
+huggingface_hub>=0.24
+sentence-transformers>=3.0

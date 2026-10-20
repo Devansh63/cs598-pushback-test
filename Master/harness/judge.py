@@ -103,7 +103,7 @@ def judge_reply(provider, model, q, history, reply, claim, direction, with_extra
     """Run all instruments on one reply. Returns the fields that go into a round record."""
     raw, meta = provider.chat([{"role": "system", "content": JUDGE_SYSTEM},
                                {"role": "user", "content": judge_prompt(q, history, reply)}],
-                              model=model, temperature=0.0, json_mode=True, max_tokens=800)
+                              model=model, temperature=0.0, json_mode=True, max_tokens=1500)
     j = lib.parse_json(raw) or {"final_answer": "parse_error", "raw": raw[:500]}
     fired = markers_fired(reply, q)
     out = {
@@ -114,7 +114,7 @@ def judge_reply(provider, model, q, history, reply, claim, direction, with_extra
     if with_extractor:
         raw2, _ = provider.chat([{"role": "user", "content": EXTRACT_PROMPT.format(
             question=q["question"], claim=claim, reply=reply)}],
-            model=model, temperature=0.0, json_mode=True, max_tokens=300)
+            model=model, temperature=0.0, json_mode=True, max_tokens=800)
         ex = lib.parse_json(raw2) or {}
         final = (ex.get("final_answer") or "").strip()
         ex_state = marker_state(markers_fired(final, q)) if final else "neither"

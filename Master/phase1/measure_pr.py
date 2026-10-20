@@ -102,7 +102,11 @@ def _wilson_p(p, n, z=1.959963984540054):
 
 def cmd_sample(a):
     import pandas as pd
-    df = pd.read_parquet(OUT / "frame.parquet")
+    cols = ["conversation_hash", "turn_index", "cue_match", "assistant_answer", "pushback"]
+    df = pd.read_parquet(OUT / "frame.parquet", columns=cols)     # projection: the frame is large
+    if a.stage != "cue_match":                                   # semantic stages live in the side file
+        sc = pd.read_parquet(OUT / "frame_scores.parquet", columns=["conversation_hash", "turn_index", a.stage])
+        df = df.merge(sc, on=["conversation_hash", "turn_index"], how="inner")
     flag = df[a.stage].astype(bool)
     cand, non = df[flag], df[~flag]
     rng = a.seed
@@ -136,7 +140,7 @@ def cmd_prelabel(a):
     def work(r):
         raw, _ = provider.chat([{"role": "system", "content": "You are a careful annotator. Return only JSON."},
                                 {"role": "user", "content": RUBRIC.format(assistant=r["assistant_answer"], user=r["pushback"])}],
-                               model=a.model, temperature=0.0, json_mode=True, max_tokens=200)
+                               model=a.model, temperature=0.0, json_mode=True, max_tokens=800)
         j = lib.parse_json(raw) or {}
         r["prelabel"] = j.get("label") if j.get("label") in LABELS else ""
         r["prelabel_reason"] = (j.get("reason") or "")[:200]

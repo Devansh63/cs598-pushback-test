@@ -1,0 +1,29 @@
+{
+  "n_cand_frame": 1898,
+  "n_non_frame": 504514,
+  "n_cand_labeled": 150,
+  "n_non_labeled": 150,
+  "tp": 127,
+  "fp": 23,
+  "fn_in_non_sample": 18,
+  "precision": 0.8466666666666667,
+  "precision_wilson": [
+    0.7804201682766676,
+    0.8956004622947993
+  ],
+  "recall": 0.02585692926786936,
+  "recall_wilson": [
+    0.010348630256959545,
+    0.06612610016008266
+  ],
+  "recall_wilson_p": [
+    0.009996455377521946,
+    0.06522389408697452
+  ],
+  "n_eff_kish": 151.12859492787692,
+  "estimated_tp_in_frame": 1606.9733333333334,
+  "estimated_fn_in_frame": 60541.68,
+  "implied_prevalence": 0.1227235004963021,
+  "yield_per_1000_frame_turns": 3.7479364628010394,
+  "label_column_used": "prelabel"
+}

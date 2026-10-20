@@ -56,9 +56,12 @@ class GeminiProvider(Provider):
             text = "".join(p.get("text", "") for p in parts if not p.get("thought")).strip()
             u = out.get("usageMetadata", {})
             self.usage.add(u.get("promptTokenCount"), u.get("candidatesTokenCount"))
-            if not text and cand.get("finishReason") == "MAX_TOKENS" and attempt < retries - 1:
+            # Thinking models spend maxOutputTokens on thoughts first: a small budget yields empty or
+            # truncated text (e.g. '{"label": "') with finishReason MAX_TOKENS. Retry with double the budget.
+            truncated = cand.get("finishReason") == "MAX_TOKENS" and (not text or json_mode)
+            if truncated and attempt < retries - 1:
                 config["maxOutputTokens"] = int(config["maxOutputTokens"] * 2)
-                last = "empty content: token budget consumed"
+                last = f"truncated at {config['maxOutputTokens'] // 2} tokens (thinking budget)"
                 continue
             return text, {"provider": self.name, "model": model,
                           "model_version": out.get("modelVersion", model),

@@ -79,7 +79,7 @@ def get_type(provider, model, t, forms):
     defs = "\n".join(f"- {k}: {v}" for k, v in forms["form_definitions"].items())
     raw, _ = provider.chat([{"role": "user", "content": lib.CLASSIFY_PROMPT.format(
         definitions=defs, initial=t["initial_answer"], pushback=t["pushback"])}],
-        model=model, temperature=0.0, json_mode=True, max_tokens=300)
+        model=model, temperature=0.0, json_mode=True, max_tokens=800)
     c = lib.parse_json(raw) or {}
     label = c.get("label")
     if label not in forms["form_definitions"]:
