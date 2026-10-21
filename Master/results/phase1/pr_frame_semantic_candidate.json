@@ -1,0 +1,8 @@
+{
+  "stage": "semantic_candidate",
+  "seed": 13,
+  "n_per_stratum": 150,
+  "n_cand_frame": 25323,
+  "n_non_frame": 481109,
+  "sheet": "pr_sample_semantic_candidate.csv"
+}
