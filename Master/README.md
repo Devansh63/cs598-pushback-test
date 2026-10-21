@@ -252,18 +252,22 @@ can be repeated on Gemini and compared with Devansh's DeepSeek numbers under one
 
 ## 6. Roadmap and ownership
 
-| Work | Owner | Needs |
+Status date 2026-10-20 (evening). `GEMINI_API_KEY` is absent on Devansh's machine, which is what
+blocks every "needs Gemini" row.
+
+| Work | Owner | Status |
 |---|---|---|
-| DeepSeek half of the 2×2 (`PREREGISTRATION.md` command), then `--rejudge` with the Gemini judge, then `analyze_cross.py` on both | Devansh | DeepSeek key, Gemini key for the judge |
-| **Embedding pass over the full frame + semantic-stage precision/recall** (`phase1/embeddings.py --top-fraction 0.05`, then `measure_pr.py sample/prelabel/compute --stage semantic_candidate`); the top-5% threshold rule was fixed before any labels | Devansh (needs > 8 GB free RAM; ~1 h) | WildChat frame (`filter_wildchat.py`, 3.4 GB download), Gemini key |
-| Replay on Gemini through `trackA/replay.py`; both replays under the shared judge | Devansh (has the pushback_300 sources) | DeepSeek + Gemini keys |
-| Generated-initial-answer runs (`run_pilot.py --initial generated`), the design Devansh's handoff recommends first | Devansh | either key |
-| 50-turn two-coder codebook pilot, per-label κ, adjudication, freeze (v2 → v3) | Sahil + Devansh | the local pilot sheets |
-| Rebuild the three reconstructed forms from coded WildChat turns (replace authored templates) | Sahil | frozen codebook |
-| Hard tier to 30+ held-out items from real disputes; replace f05/f15/f24; two-name verification of the 30 factual answers | Sahil + Devansh (one pass each) | — |
-| Phase 1 human adjudication of the 300 pre-labelled PR sample | Sahil | — |
-| Repair the type classifier against hand codes, or downgrade RQ3 to a mechanism study | Xuejun | frozen codebook |
-| RQ2 main run (both vendors, both tiers, 5 forms, 3 rounds) and RQ3 on the hard tier | Mathew runs; Zoey analyses | keys |
+| 2×2 cross, **DeepSeek half** | Devansh | **done, provisional**: 160 trials, 0% caving on easy and hard held-out; judged with DeepSeek — re-judge with `gemini-3.6-flash` when the key is available |
+| 2×2 cross, **Gemini half** | Sahil | **needs a re-run**: the committed half predates the f05/f15/f24 replacement |
+| Embedding pass + semantic-stage precision/recall | Devansh | **done**: 506,412 turns scored, top-5% = 25,323; P 0.233 / R 0.093; pre-labels are DeepSeek, so re-prelabel with Gemini before comparing stages |
+| Generated-initial runs | Devansh | **done for easy/DeepSeek**: 60/60 correct first answers, 60/60 holds; hard tier still to run |
+| Track A replay on Gemini | Devansh | blocked: no Gemini key (the DeepSeek replay is carried in from the pilot) |
+| 50-turn two-coder codebook pilot, per-label κ, adjudication, freeze v3 | Sahil + Devansh | sheets ready on both sides (`pilot50_<coder>.csv`, local); coding not started |
+| Rebuild the three reconstructed forms from coded WildChat turns | Sahil | pending the frozen codebook |
+| Hard tier to 30+ held-out items; two-name verification of the 30 factual items | Sahil + Devansh | three items replaced; **Devansh's web-evidence pass is done (30/30 supported)**, second name still needed |
+| Phase 1 human adjudication of the 300 pre-labelled PR sample | Sahil | pending |
+| Repair the type classifier against hand codes, or downgrade RQ3 to a mechanism study | Xuejun | pending the frozen codebook |
+| RQ2 main run (both vendors, both tiers, 5 forms, 3 rounds) and RQ3 on the hard tier | Mathew runs; Zoey analyses | pending keys |
 
 ## 7. Acceptance tests (merge brief)
 
