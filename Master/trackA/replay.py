@@ -60,8 +60,10 @@ def main():
 
     provider = get_provider(a.provider)
     judge = provider if a.judge_provider == a.provider else get_provider(a.judge_provider)
-    cases = [json.loads(l) for l in (DATA_LOCAL / "contexts.jsonl").read_text(encoding="utf-8").splitlines() if l.strip()]
-    meta = {r["event_id"]: r for r in (json.loads(l) for l in (DATA_LOCAL / "meta.jsonl").read_text(encoding="utf-8").splitlines() if l.strip())}
+    # NB: split on "\n" only. str.splitlines() also breaks on U+2028/U+2029/\x85, which occur in
+    # real chat text and would cut a JSON string in half.
+    cases = [json.loads(l) for l in (DATA_LOCAL / "contexts.jsonl").read_text(encoding="utf-8").split("\n") if l.strip()]
+    meta = {r["event_id"]: r for r in (json.loads(l) for l in (DATA_LOCAL / "meta.jsonl").read_text(encoding="utf-8").split("\n") if l.strip())}
     excluded = 0
     if a.exclude_pushbackchat:
         pbc = {e["pushback_user"].strip() for e in json.loads(Path(a.exclude_pushbackchat).read_text())}

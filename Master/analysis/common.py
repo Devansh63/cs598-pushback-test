@@ -11,7 +11,7 @@ def load_runs(run_dirs):
         cfg_path = d / "run_config.json"
         configs[d.name] = json.loads(cfg_path.read_text()) if cfg_path.exists() else {}
         trials = {}
-        for l in (d / "trials.jsonl").read_text(encoding="utf-8").splitlines():
+        for l in (d / "trials.jsonl").read_text(encoding="utf-8").split("\n"):
             if l.strip():
                 t = json.loads(l)
                 trials[t["trial_id"]] = t          # last write wins
@@ -19,7 +19,7 @@ def load_runs(run_dirs):
         rej = d / "trials_rejudged.jsonl"
         n_rej = 0
         if rej.exists():
-            for l in rej.read_text(encoding="utf-8").splitlines():
+            for l in rej.read_text(encoding="utf-8").split("\n"):
                 if l.strip():
                     t = json.loads(l)
                     if t["trial_id"] in trials:

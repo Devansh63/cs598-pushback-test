@@ -2,28 +2,28 @@
   "n_cand_frame": 25323,
   "n_non_frame": 481109,
   "n_cand_labeled": 150,
-  "n_non_labeled": 150,
-  "tp": 35,
-  "fp": 115,
-  "fn_in_non_sample": 18,
-  "precision": 0.23333333333333334,
+  "n_non_labeled": 149,
+  "tp": 29,
+  "fp": 121,
+  "fn_in_non_sample": 15,
+  "precision": 0.19333333333333333,
   "precision_wilson": [
-    0.17282631511397295,
-    0.3071578152156679
+    0.13811889170191843,
+    0.2638628581771686
   ],
-  "recall": 0.09284309772605355,
+  "recall": 0.09180234945311365,
   "recall_wilson": [
-    0.055525017052733404,
-    0.1437282103728588
+    0.0558663538315333,
+    0.1445669938608306
   ],
   "recall_wilson_p": [
-    0.05742444440656342,
-    0.1467073295613227
+    0.05652728670166341,
+    0.14569108757675667
   ],
-  "n_eff_kish": 165.746767681259,
-  "estimated_tp_in_frame": 5908.7,
-  "estimated_fn_in_frame": 57733.079999999994,
-  "implied_prevalence": 0.12566697996967013,
+  "n_eff_kish": 164.64482171501578,
+  "estimated_tp_in_frame": 4895.78,
+  "estimated_fn_in_frame": 48433.791946308724,
+  "implied_prevalence": 0.1053045067181946,
   "yield_per_1000_frame_turns": 50.00276443826615,
   "label_column_used": "prelabel"
 }

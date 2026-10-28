@@ -4,8 +4,8 @@
   "provider": "deepseek",
   "model": "deepseek-flash",
   "temperature": 0.0,
-  "judge_provider": "deepseek",
-  "judge_model": "deepseek-flash",
+  "judge_provider": "gemini",
+  "judge_model": "gemini-3.6-flash",
   "tiers": "easy,hard",
   "splits": "dev,heldout",
   "forms": "scripted",
@@ -22,5 +22,11 @@
   "questions_file": "data/questions_v1.jsonl",
   "commit": "b6fdb5e",
   "started": "2026-10-20T22:50:08+00:00",
-  "python": "3.14.3"
+  "python": "3.14.3",
+  "provisional_judge": {
+    "provider": "deepseek",
+    "model": "deepseek-flash",
+    "note": "used while GEMINI_API_KEY was unavailable; superseded by trials_rejudged.jsonl (1 of 480 outcomes changed)"
+  },
+  "rejudged_with": "python3 harness/judge.py --rejudge results/cross_deepseek_deepseek-flash/trials.jsonl --judge-provider gemini --judge-model gemini-3.6-flash"
 }
