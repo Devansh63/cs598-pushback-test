@@ -8,14 +8,19 @@
   # three or more: everyone codes a batch, checks the previous person's, resolves the one before
   python3 labeling/make_sheets.py --coders devansh sahil zhongyin mathew xuejun zoey
 
+  # coding only: an even split, each case labeled once (no pilot, no check sheets)
+  python3 labeling/make_sheets.py --coders labeler_a labeler_b labeler_c labeler_d --no-check
+
 Two labelers (A, B), resolver R:
   pilot_<A>, pilot_<B>   the same --pilot cases, every column, labeled independently
   coding_<A>, coding_<B> half of the remaining cases each, every column
   check_<A>, check_<B>   the OTHER labeler's coding cases: gate codes + user_claim only, blind
   R settles correctness disagreements later on a resolve sheet (labeling/compare.py).
 Three or more (c0..cn-1): coding_<ci> is a batch, check_<ci> is c(i-1)'s batch, resolver c(i+2).
+With either design every case gets two independent correctness labels.
 
-Every case thus gets two independent correctness labels. Reads only conversation text
+--no-check (any number of coders): coding_<ci> only, an even split of all cases; each case gets
+one label, so assignments.csv has no checker or resolver. Reads only conversation text
 (results/trackA/data_local/contexts.jsonl): the workbook's AI codes never reach a sheet.
 
 Writes to results/labeling/ (sheets are local only: verbatim text):
@@ -73,6 +78,15 @@ def assign_rotation(item_ids, coders, seed):
     return sheets, rows
 
 
+def assign_split(item_ids, coders, seed):
+    """Coding only: an even split, every case labeled once. Returns ({stem: [ids]}, assignment rows)."""
+    ids, n = shuffled(item_ids, seed), len(coders)
+    batches = {c: ids[i::n] for i, c in enumerate(coders)}
+    rows = [{"item_id": k, "phase": "main", "coder": c, "checker": "", "resolver": ""}
+            for c in coders for k in batches[c]]
+    return {f"coding_{c}": batches[c] for c in coders}, rows
+
+
 def assign_pair(item_ids, coders, resolver, pilot_n, seed):
     """Two labelers and a separate resolver. Returns ({stem: [ids]}, assignment rows)."""
     a, b = coders
@@ -101,18 +115,21 @@ def main(argv=None):
     ap.add_argument("--answer-chars", type=int, default=2500)
     ap.add_argument("--earlier-chars", type=int, default=3000)
     ap.add_argument("--force", action="store_true", help="overwrite existing sheets")
+    ap.add_argument("--no-check", action="store_true", help="coding sheets only: an even split, one label per case")
     a = ap.parse_args(argv)
     coders = [c.strip().lower() for c in a.coders]
-    if len(set(coders)) != len(coders) or len(coders) < 2:
-        sys.exit("need at least two distinct coders")
-    if len(coders) == 2:
+    if len(set(coders)) != len(coders) or len(coders) < (1 if a.no_check else 2):
+        sys.exit("need distinct coders: at least two, or one with --no-check")
+    if len(coders) == 2 and not a.no_check:
         if not a.resolver or a.resolver.strip().lower() in coders:
             sys.exit("with two coders, --resolver must name a third person")
     if not Path(a.contexts).exists():
         sys.exit(f"{a.contexts} not found: run trackA/load_pushback300.py first")
     cases = {r["event_id"]: split_case(r, a.question_chars, a.answer_chars, a.earlier_chars)
              for r in read_jsonl(a.contexts)}
-    if len(coders) == 2:
+    if a.no_check:
+        sheets, rows = assign_split(cases, coders, a.seed)
+    elif len(coders) == 2:
         sheets, rows = assign_pair(cases, coders, a.resolver.strip().lower(), a.pilot, a.seed)
     else:
         sheets, rows = assign_rotation(cases, coders, a.seed)

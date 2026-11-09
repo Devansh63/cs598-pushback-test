@@ -20,7 +20,7 @@ from labeling.common import OUT, cell, find_sheet, read_sheet, write_sheet  # no
 NAME = "sheets_manifest.csv"
 COLS = ["sheet", "labeler", "phase", "rows", "case_ids_sha256", "file_sha256", "bytes", "drive_location"]
 PHASES = ("pilot", "coding", "check")
-DRIVE_ROOT = "CS598-Group6 / Labeling"
+DRIVE_ROOT = "CS598-Group6 / Labelling 4 people split"   # the current round's Drive folder
 
 
 def ids_of(path):
@@ -50,7 +50,7 @@ def expected_ids(assignments, phase, labeler):
     return {r["item_id"] for r in assignments if r.get("phase", "main") == "main" and r[who] == labeler}
 
 
-def write(d, force=False):
+def write(d, force=False, drive_root=DRIVE_ROOT):
     if (Path(d) / NAME).exists() and not force:
         sys.exit(f"{Path(d) / NAME} exists: it records the sheets as sent. Use --check, or --force for a new round.")
     rows = []
@@ -58,7 +58,7 @@ def write(d, force=False):
         ids = ids_of(path)
         rows.append({"sheet": path.name, "labeler": labeler, "phase": phase, "rows": len(ids),
                      "case_ids_sha256": ids_hash(ids), "file_sha256": file_hash(path), "bytes": path.stat().st_size,
-                     "drive_location": f"{DRIVE_ROOT} / {labeler.replace('_', ' ').title()}"})
+                     "drive_location": f"{drive_root} / {labeler.replace('_', ' ').title()}"})
     write_sheet(Path(d) / NAME, COLS, rows)
     for r in rows:
         print(f"{r['sheet']:<24} {r['rows']:>4} cases  ids {r['case_ids_sha256'][:12]}  -> {r['drive_location']}")
@@ -97,13 +97,14 @@ def main(argv=None):
     ap.add_argument("--dir", default=str(OUT))
     ap.add_argument("--check", action="store_true", help="verify returned sheets against the manifest")
     ap.add_argument("--force", action="store_true", help="rewrite the manifest (new round of sheets only)")
+    ap.add_argument("--drive-root", default=DRIVE_ROOT, help="Drive folder the sheets were put in (a name, not a link)")
     a = ap.parse_args(argv)
     if a.check:
         n = check(a.dir)
         if n:
             sys.exit(1)
         return n
-    return write(a.dir, a.force)
+    return write(a.dir, a.force, a.drive_root)
 
 
 if __name__ == "__main__":

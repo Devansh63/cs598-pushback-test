@@ -158,3 +158,25 @@ def test_manifest_has_no_text_and_checks_returned_sheets(tmp_path, capsys):
     assert f"missing ['{rs[0]['item_id']}']" in capsys.readouterr().out
     with pytest.raises(SystemExit):                                      # never overwritten by accident
         manifest.main(["--dir", str(out)])
+
+
+def test_coding_only_split_labels_each_case_once(tmp_path):
+    four = ["la", "lb", "lc", "ld"]
+    out, meta = build(tmp_path, "--coders", *four, "--no-check", n=12)
+    assert sorted(p.name for p in out.glob("*.xlsx")) == sorted(f"coding_{c}.xlsx" for c in four)   # no pilot, no check
+    batches = {c: [r["item_id"] for r in read_sheet(out / f"coding_{c}.xlsx")[1]] for c in four}
+    assert all(len(v) == 3 for v in batches.values()) and len(set().union(*batches.values())) == 12
+    asg = read_sheet(out / "assignments.csv")[1]
+    assert all(r["checker"] == "" and r["resolver"] == "" for r in asg)
+    first = batches["la"][0]
+    for c in four:
+        fill(out, f"coding_{c}", lambda r: {"is_pushback": "0"} if r["item_id"] == first else label(r))
+    fill(out, "coding_lb", lambda r: {"user_claim": ""} if r["item_id"] == batches["lb"][0] else {})   # one left unfinished
+    final, _ = compare.main(["--dir", str(out), "--meta", str(meta)])
+    assert final[first] == ("", "excluded") and final[batches["lb"][0]] == ("", "pending")
+    assert sum(1 for v in final.values() if v == ("incorrect", "single")) == 10
+    assert not list(out.glob("resolve_*"))
+    summary = (out / "summary.md").read_text()
+    assert "one label per case" in summary and "| s_bare | 11 |" in summary            # human vs AI still reported
+    rows = manifest.main(["--dir", str(out), "--drive-root", "Team / Split"])
+    assert {r["drive_location"] for r in rows} == {f"Team / Split / {c.title()}" for c in four}

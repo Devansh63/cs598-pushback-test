@@ -9,13 +9,15 @@ pilot, the two labelers' pilot sheets):
   both not pushback, or both not checkable      -> excluded (no user_claim needed)
   both checkable with the same user_claim       -> agreed
   any other combination                         -> sent to the resolver
+A case with no checker (make_sheets.py --no-check) has one label: not checkable -> excluded,
+checkable with a valid user_claim -> single, anything else stays pending.
 Writes to --dir:
   resolve_<name>.xlsx    cases that person must settle (local only: verbatim text). Fill
                          `user_claim_final` (correct / incorrect / mixed / indeterminate /
                          not_checkable) and re-run. Filled rows are kept; new cases are appended.
   pilot_agreement.csv    per-label kappa between the two pilot sheets (aggregate); its companion
                          disagreements_coding.csv holds text and stays local
-  correctness_final.csv  item_id, user_claim, status (agreed / resolved / excluded / pending)  (ids + labels)
+  correctness_final.csv  item_id, user_claim, status (agreed / resolved / single / excluded / pending)
   summary.md             all agreement tables (aggregate only)
 """
 import argparse
@@ -64,8 +66,8 @@ def main(argv=None):
     assignments = read_sheet(d / "assignments.csv")[1]
     for r in assignments:
         r.setdefault("phase", "main")
-    labelers = sorted({r["coder"] for r in assignments} | {r["checker"] for r in assignments})
-    resolvers = sorted({r["resolver"] for r in assignments})
+    labelers = sorted(({r["coder"] for r in assignments} | {r.get("checker", "") for r in assignments}) - {""})
+    resolvers = sorted({r.get("resolver", "") for r in assignments} - {""})
     pilot = {p: keyed(find_sheet(d, f"pilot_{p}")) for p in labelers}
     coding = {p: keyed(find_sheet(d, f"coding_{p}")) for p in labelers}
     check = {p: keyed(find_sheet(d, f"check_{p}")) for p in labelers}
@@ -89,9 +91,16 @@ def main(argv=None):
     for asg in assignments:
         item, is_pilot = asg["item_id"], asg["phase"] == "pilot"
         A = (pilot if is_pilot else coding)[asg["coder"]].get(item)
-        B = (pilot if is_pilot else check)[asg["checker"]].get(item)
         if labeled(A):
             human[item] = A
+        if not asg.get("checker"):                       # labeled once: the coder's label stands
+            if not labeled(A):
+                final[item] = ("", "pending")
+                continue
+            _, ca, ua = view(A)
+            final[item] = ("", "excluded") if not ca else (ua, "single") if ua in USER_CLAIM_VALUES else ("", "pending")
+            continue
+        B = (pilot if is_pilot else check)[asg["checker"]].get(item)
         if not (labeled(A) and labeled(B)):
             final[item] = ("", "pending")
             continue
@@ -133,15 +142,20 @@ def main(argv=None):
     write_sheet(d / "correctness_final.csv", ["item_id", "user_claim", "status"],
                 [{"item_id": k, "user_claim": v[0], "status": v[1]} for k, v in sorted(final.items())])
     status = collections.Counter(s for _, s in final.values())
-    claims = collections.Counter(c for c, s in final.values() if s in ("agreed", "resolved"))
-    lines += ["## Correctness: two independent labels per case", "",
-              f"{len(final)} cases · " + " · ".join(f"{k} {status.get(k, 0)}" for k in ("agreed", "resolved", "excluded", "pending")), "",
-              "| label | n | κ | raw agreement |", "|---|---|---|---|"]
-    for label, (xs, ys) in pairs.items():
-        raw = sum(x == y for x, y in zip(xs, ys)) / len(xs) if xs else float("nan")
-        lines.append(f"| {label} | {len(xs)} | {fmt(kappa(xs, ys))} | {fmt(raw)} |")
-    lines += ["", "Settled user_claim values (agreed + resolved): " +
-              (", ".join(f"{k} {v}" for k, v in sorted(claims.items())) or "none yet"), ""]
+    claims = collections.Counter(c for c, s in final.values() if s in ("agreed", "resolved", "single"))
+    double = any(r.get("checker") for r in assignments)
+    lines += ["## Correctness: " + ("two independent labels per case" if double else "one label per case"), "",
+              f"{len(final)} cases · " + " · ".join(f"{k} {status.get(k, 0)}" for k in ("agreed", "resolved", "single", "excluded", "pending")
+                                                   if double or k in ("single", "excluded", "pending")), ""]
+    if double:
+        lines += ["| label | n | κ | raw agreement |", "|---|---|---|---|"]
+        for label, (xs, ys) in pairs.items():
+            raw = sum(x == y for x, y in zip(xs, ys)) / len(xs) if xs else float("nan")
+            lines.append(f"| {label} | {len(xs)} | {fmt(kappa(xs, ys))} | {fmt(raw)} |")
+        lines.append("")
+    else:
+        lines += ["Each case was labeled by one person, so there is no human-human agreement to report.", ""]
+    lines += ["Settled user_claim values: " + (", ".join(f"{k} {v}" for k, v in sorted(claims.items())) or "none yet"), ""]
 
     # ---- human codes vs the workbook's AI codes (one human label per case: the coder's) ------
     lines += ["## Human codes vs AI pre-codes", ""]

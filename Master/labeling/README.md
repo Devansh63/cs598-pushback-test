@@ -4,24 +4,28 @@ Human labels for the 300 real pushback cases: pushback codes (codebook v2) and w
 was right (`user_claim`). Labeler instructions are in the team's **Labeling Guide** (in the shared
 Drive folder); the definitions come from [`../data/codebook_v2.md`](../data/codebook_v2.md).
 
-## Current round: two labelers (generated 2026-11-09)
+## Current round: four labelers, coding only (generated 2026-11-09)
 
 ```bash
-python3 labeling/make_sheets.py --coders labeler_a labeler_b --resolver devansh --pilot 50
+python3 labeling/make_sheets.py --coders labeler_a labeler_b labeler_c labeler_d --no-check
 ```
 
-| Phase | Labeler A | Labeler B | Correctness labels per case |
-|---|---|---|---|
-| Pilot | `pilot_labeler_a.xlsx`: 50 cases, every column | `pilot_labeler_b.xlsx`: the same 50 | A and B |
-| Main | `coding_labeler_a.xlsx`: 125 cases, every column; `check_labeler_a.xlsx`: B's 125, correctness only | `coding_labeler_b.xlsx`; `check_labeler_b.xlsx`: A's 125 | coder and checker |
-| Disagreements | | | Devansh settles on `resolve_devansh.xlsx` |
+The 300 cases are split evenly at random (seed 598): `coding_labeler_a.xlsx` … `coding_labeler_d.xlsx`,
+75 cases each, every column filled. There is no shared pilot and no check sheet, so each case gets
+one label: the coder's `user_claim` is final (`status = single` in `correctness_final.csv`), and
+`compare.py` reports human-vs-AI agreement only, not human-human agreement. `assignments.csv`
+(committed, ids only) records each case's coder; checker and resolver are blank.
 
-The pilot comes first: compare the two pilot sheets, settle disagreements, freeze the codebook,
-then the main round starts. The sheets themselves live only in the team Drive folder (`CS598-Group6 / Labeling / Labeler A` and `Labeler B`): this repo is public and they hold real user turns. `sheets_manifest.csv` is the repo's record of them. `assignments.csv` (committed, ids only) records every case's phase,
-coder, checker and resolver. The same seed always gives the same split.
+The sheets live only in the team Drive folder `CS598-Group6 / Labelling 4 people split`, one
+subfolder per labeler, next to the labeling guide for this round: this repo is public and they hold
+real user turns. `sheets_manifest.csv` is the repo's record of them.
 
-Three or more people instead: `make_sheets.py --coders a b c ...` gives each a coding batch and a
-check sheet for the previous person's batch, with the next-but-one person as resolver.
+Other designs the tools support:
+
+- Two labelers with a shared pilot and a blind correctness cross-check (the plan before this round):
+  `make_sheets.py --coders labeler_a labeler_b --resolver devansh --pilot 50`
+- Three or more people with a cross-check: `make_sheets.py --coders a b c ...` gives each a coding
+  batch and a check sheet for the previous person's batch, with the next-but-one person as resolver.
 
 ## Steps
 
@@ -32,7 +36,7 @@ Run from `Master/`. Steps 1, 2 and 4 need the `pushback_300` source files (in th
 python3 trackA/load_pushback300.py --contexts <pushback_300_contexts.md> --workbook <pushback_300_coded.xlsm>
 
 # 2. Make the sheets (refuses to overwrite filled sheets; --format csv for CSV)
-python3 labeling/make_sheets.py --coders labeler_a labeler_b --resolver devansh --pilot 50
+python3 labeling/make_sheets.py --coders labeler_a labeler_b labeler_c labeler_d --no-check
 
 # 3. Record what goes out, then hand out the sheets privately (never through GitHub):
 python3 labeling/manifest.py
@@ -40,10 +44,11 @@ python3 labeling/manifest.py
 python3 labeling/manifest.py --check                  # same cases as were sent out?
 python3 labeling/check_sheets.py results/labeling/*.xlsx
 
-# 4. Compare: pilot code agreement, correctness agreement, the resolve sheet, human vs AI codes
+# 4. Compare: final correctness labels and human vs AI codes (plus pilot/cross-check agreement
+#    and a resolve sheet when the round has them)
 python3 labeling/compare.py
-#    The resolver fills user_claim_final on resolve_<name>.xlsx; put it back and re-run compare.py:
-#    settled answers are kept and correctness_final.csv gets the final labels.
+#    With a cross-check, the resolver fills user_claim_final on resolve_<name>.xlsx; put it back and
+#    re-run compare.py: settled answers are kept and correctness_final.csv gets the final labels.
 ```
 
 ## The sheets
