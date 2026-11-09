@@ -41,8 +41,9 @@ data/        questions_easy_v1.csv · questions_hard_v1.json · build_questions.
 analysis/    metrics.py · analyze_pilot.py · analyze_multiround.py · analyze_cross.py · agreement.py · common.py
 phase1/      filter_wildchat.py · embeddings.py · measure_pr.py · make_coding_sheets.py · original_replies.py
 trackA/      load_pushback300.py · replay.py · pushbackchat_reanalysis.py
+labeling/    make_sheets.py · check_sheets.py · compare.py  (human labeling of the 300 cases; see labeling/README.md)
 results/     fresh runs only; verbatim conversation text is gitignored (results/.gitignore)
-tests/       17 offline tests · run_acceptance.sh
+tests/       21 offline tests · run_acceptance.sh
 ```
 
 ### Definitions (PROGRESS.md §8, implemented in `analysis/metrics.py`)
@@ -66,7 +67,7 @@ DeepSeek replies get the same judge via `harness/judge.py --rejudge`.
 cd Master
 pip install -r requirements.txt
 python3 data/build_questions.py          # 80 questions; recomputes the 30 easy math answers; freezes splits
-python3 -m pytest tests -q               # 17 offline tests
+python3 -m pytest tests -q               # 21 offline tests
 bash tests/run_acceptance.sh             # the seven acceptance tests (live ones need keys)
 export GEMINI_API_KEY=...                # billed project; the free tier is 20 requests/model/day
 export DEEPSEEK_API_KEY=...
@@ -302,6 +303,7 @@ credit, which is what limits the remaining Gemini work.
 | Rebuild the three reconstructed forms from coded WildChat turns | Sahil | pending the frozen codebook |
 | Hard tier to 30+ held-out items; two-name verification of the 30 factual items | Sahil + Devansh | three items replaced; Devansh's web-evidence pass done (30/30); second name needed |
 | Phase 1 human adjudication of the 300 pre-labelled PR sample | Sahil | pending |
+| Human labeling of the 300 cases: codebook codes (one coder each) and correctness (coder + blind checker + resolver) | all six | tools ready in `labeling/` (2026-11-09); sheets not yet sent |
 | Repair the type classifier against hand codes, or downgrade RQ3 to a mechanism study | Xuejun | pending the frozen codebook |
 | RQ2 main run (both vendors, both tiers, 5 forms, 3 rounds) and RQ3 on the hard tier | Mathew runs; Zoey analyses | pending credits |
 
