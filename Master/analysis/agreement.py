@@ -32,6 +32,9 @@ def kappa(xs, ys):
 
 
 def read(path):
+    if Path(path).suffix.lower() == ".xlsx":            # sheets made by labeling/make_sheets.py
+        from labeling.excel import read_xlsx
+        return {r["item_id"]: r for r in read_xlsx(path)[1]}
     with open(path, newline="", encoding="utf-8") as f:
         return {r["item_id"]: r for r in csv.DictReader(f)}
 

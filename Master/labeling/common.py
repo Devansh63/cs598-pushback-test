@@ -58,17 +58,34 @@ def cell(v):
 
 
 def read_sheet(path):
+    """(columns, rows) from a .csv or .xlsx sheet; every value comes back as a string."""
+    if Path(path).suffix.lower() == ".xlsx":
+        from labeling.excel import read_xlsx
+        return read_xlsx(path)
     with open(path, newline="", encoding="utf-8-sig") as f:
         reader = csv.DictReader(f)
         return reader.fieldnames or [], list(reader)
 
 
 def write_sheet(path, cols, rows):
+    """Write .xlsx (dropdowns, shading, quick reference) or .csv, by the path's suffix."""
+    if Path(path).suffix.lower() == ".xlsx":
+        from labeling.excel import write_xlsx
+        return write_xlsx(path, cols, rows)
     with open(path, "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=cols, extrasaction="ignore")
         w.writeheader()
         for r in rows:
             w.writerow({c: r.get(c, "") for c in cols})
+
+
+def find_sheet(directory, stem):
+    """The returned sheet `stem`.xlsx, else `stem`.csv, else None."""
+    for ext in (".xlsx", ".csv"):
+        p = Path(directory) / f"{stem}{ext}"
+        if p.exists():
+            return p
+    return None
 
 
 def read_jsonl(path):

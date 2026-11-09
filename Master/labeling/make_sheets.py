@@ -1,20 +1,26 @@
-"""Build blind labeling sheets for the 300-case corpus: one coding sheet and one check sheet per person.
+"""Build blind labeling sheets for the 300-case corpus.
 
   python3 trackA/load_pushback300.py --contexts <pushback_300_contexts.md> --workbook <pushback_300_coded.xlsm>
-  python3 labeling/make_sheets.py [--coders devansh sahil zhongyin mathew xuejun zoey] [--seed 598]
 
-Every case is labeled by one CODER (codebook v2, all columns) and checked for correctness by a
-second person, the CHECKER (gate codes + user_claim only), who never sees the coder's labels. A
-third person, the RESOLVER, settles correctness disagreements later (labeling/compare.py). With
-coders c0..c(n-1), the checker of c_i's batch is c_(i+1) and the resolver is c_(i+2).
+  # two labelers: a shared pilot, then a split with a correctness cross-check
+  python3 labeling/make_sheets.py --coders labeler_a labeler_b --resolver devansh [--pilot 50]
 
-Reads only conversation text (results/trackA/data_local/contexts.jsonl). The AI codes in the
-workbook never reach a sheet.
+  # three or more: everyone codes a batch, checks the previous person's, resolves the one before
+  python3 labeling/make_sheets.py --coders devansh sahil zhongyin mathew xuejun zoey
 
-Writes to results/labeling/:
-  coding_<name>.csv   that person's batch, every codebook column       (local only: verbatim text)
-  check_<name>.csv    the previous person's batch, correctness columns  (local only: verbatim text)
-  assignments.csv     item_id, coder, checker, resolver                 (ids only: safe to commit)
+Two labelers (A, B), resolver R:
+  pilot_<A>, pilot_<B>   the same --pilot cases, every column, labeled independently
+  coding_<A>, coding_<B> half of the remaining cases each, every column
+  check_<A>, check_<B>   the OTHER labeler's coding cases: gate codes + user_claim only, blind
+  R settles correctness disagreements later on a resolve sheet (labeling/compare.py).
+Three or more (c0..cn-1): coding_<ci> is a batch, check_<ci> is c(i-1)'s batch, resolver c(i+2).
+
+Every case thus gets two independent correctness labels. Reads only conversation text
+(results/trackA/data_local/contexts.jsonl): the workbook's AI codes never reach a sheet.
+
+Writes to results/labeling/ (sheets are local only: verbatim text):
+  <sheets>.xlsx         dropdowns, read-only text shaded, a quick-reference tab (--format csv for CSV)
+  assignments.csv       item_id, phase, coder, checker, resolver (ids only: safe to commit)
 Refuses to overwrite existing sheets (they may already be filled) unless --force.
 """
 import argparse
@@ -48,52 +54,83 @@ def split_case(rec, q_limit, a_limit, earlier_limit):
             "pushback": scrub(msgs[t]["content"])}
 
 
-def assign(item_ids, coders, seed):
+def shuffled(item_ids, seed):
     ids = sorted(item_ids)
     random.Random(seed).shuffle(ids)
-    n = len(coders)
+    return ids
+
+
+def assign_rotation(item_ids, coders, seed):
+    """Three or more people. Returns ({stem: [ids]}, assignment rows)."""
+    ids, n = shuffled(item_ids, seed), len(coders)
     batches = {c: ids[i::n] for i, c in enumerate(coders)}
-    rows = []
+    sheets, rows = {}, []
     for i, c in enumerate(coders):
-        for item in batches[c]:
-            rows.append({"item_id": item, "coder": c, "checker": coders[(i + 1) % n], "resolver": coders[(i + 2) % n]})
-    return batches, rows
+        sheets[f"coding_{c}"] = batches[c]
+        sheets[f"check_{c}"] = batches[coders[(i - 1) % n]]
+        rows += [{"item_id": k, "phase": "main", "coder": c, "checker": coders[(i + 1) % n],
+                  "resolver": coders[(i + 2) % n]} for k in batches[c]]
+    return sheets, rows
+
+
+def assign_pair(item_ids, coders, resolver, pilot_n, seed):
+    """Two labelers and a separate resolver. Returns ({stem: [ids]}, assignment rows)."""
+    a, b = coders
+    ids = shuffled(item_ids, seed)
+    pilot, rest = ids[:pilot_n], ids[pilot_n:]
+    batch = {a: rest[0::2], b: rest[1::2]}
+    sheets = {f"pilot_{a}": pilot, f"pilot_{b}": pilot,
+              f"coding_{a}": batch[a], f"coding_{b}": batch[b],
+              f"check_{a}": batch[b], f"check_{b}": batch[a]}
+    rows = [{"item_id": k, "phase": "pilot", "coder": a, "checker": b, "resolver": resolver} for k in pilot]
+    rows += [{"item_id": k, "phase": "main", "coder": c, "checker": (b if c == a else a), "resolver": resolver}
+             for c in (a, b) for k in batch[c]]
+    return sheets, rows
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--coders", nargs="+", default=DEFAULT_CODERS)
+    ap.add_argument("--resolver", help="required with two coders: who settles correctness disagreements")
+    ap.add_argument("--pilot", type=int, default=50, help="two coders: cases both label (0 = none)")
     ap.add_argument("--seed", type=int, default=598)
+    ap.add_argument("--format", choices=["xlsx", "csv"], default="xlsx")
     ap.add_argument("--contexts", default=str(CONTEXTS))
     ap.add_argument("--out", default=str(OUT))
     ap.add_argument("--question-chars", type=int, default=1000)
     ap.add_argument("--answer-chars", type=int, default=2500)
-    ap.add_argument("--earlier-chars", type=int, default=1500)
+    ap.add_argument("--earlier-chars", type=int, default=3000)
     ap.add_argument("--force", action="store_true", help="overwrite existing sheets")
     a = ap.parse_args(argv)
     coders = [c.strip().lower() for c in a.coders]
-    if len(set(coders)) < 3 or len(set(coders)) != len(coders):
-        sys.exit("need at least three distinct coders (coder, checker and resolver must differ)")
+    if len(set(coders)) != len(coders) or len(coders) < 2:
+        sys.exit("need at least two distinct coders")
+    if len(coders) == 2:
+        if not a.resolver or a.resolver.strip().lower() in coders:
+            sys.exit("with two coders, --resolver must name a third person")
     if not Path(a.contexts).exists():
         sys.exit(f"{a.contexts} not found: run trackA/load_pushback300.py first")
-    out = Path(a.out)
-    out.mkdir(parents=True, exist_ok=True)
-    existing = [p for c in coders for p in (out / f"coding_{c}.csv", out / f"check_{c}.csv") if p.exists()]
-    if existing and not a.force:
-        sys.exit(f"refusing to overwrite {len(existing)} existing sheet(s), e.g. {existing[0]} (use --force)")
-
     cases = {r["event_id"]: split_case(r, a.question_chars, a.answer_chars, a.earlier_chars)
              for r in read_jsonl(a.contexts)}
-    batches, rows = assign(cases, coders, a.seed)
-    for i, c in enumerate(coders):
-        write_sheet(out / f"coding_{c}.csv", coding_cols(), [cases[k] for k in batches[c]])
-        prev = coders[(i - 1) % len(coders)]
-        write_sheet(out / f"check_{c}.csv", check_cols(), [cases[k] for k in batches[prev]])
-    write_sheet(out / "assignments.csv", ["item_id", "coder", "checker", "resolver"], rows)
-    sizes = ", ".join(f"{c} {len(batches[c])}" for c in coders)
-    print(f"{len(cases)} cases -> {out}: coding sheets ({sizes}); each person also checks the previous "
-          f"person's batch; assignments.csv written")
-    return batches, rows
+    if len(coders) == 2:
+        sheets, rows = assign_pair(cases, coders, a.resolver.strip().lower(), a.pilot, a.seed)
+    else:
+        sheets, rows = assign_rotation(cases, coders, a.seed)
+
+    out = Path(a.out)
+    out.mkdir(parents=True, exist_ok=True)
+    paths = {stem: out / f"{stem}.{a.format}" for stem in sheets}
+    existing = [p for p in paths.values() if p.exists()]
+    if existing and not a.force:
+        sys.exit(f"refusing to overwrite {len(existing)} existing sheet(s), e.g. {existing[0]} (use --force)")
+    for stem, ids in sheets.items():
+        cols = check_cols() if stem.startswith("check_") else coding_cols()
+        write_sheet(paths[stem], cols, [cases[k] for k in ids])
+    write_sheet(out / "assignments.csv", ["item_id", "phase", "coder", "checker", "resolver"], rows)
+    print(f"{len(cases)} cases -> {out}")
+    for stem, ids in sheets.items():
+        print(f"  {paths[stem].name}: {len(ids)} rows")
+    return sheets, rows
 
 
 if __name__ == "__main__":

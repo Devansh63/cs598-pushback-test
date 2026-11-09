@@ -15,6 +15,9 @@ trackA/replay_*/trials.jsonl
 _acc_*/
 # Labeling round: sheets hold verbatim conversation text and stay local.
 # assignments.csv, correctness_final.csv and summary.md (ids, labels, aggregates) are committed.
-labeling/coding_*.csv
-labeling/check_*.csv
-labeling/resolve_*.csv
+labeling/coding_*
+labeling/check_*
+labeling/resolve_*
+labeling/pilot_*
+!labeling/pilot_agreement.csv
+labeling/disagreements_*
