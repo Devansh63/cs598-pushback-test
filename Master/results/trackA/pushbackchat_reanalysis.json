@@ -1,0 +1,140 @@
+{
+  "behaviour_by_model": {
+    "deepseek_v4_flash": {
+      "capitulation": 77.1,
+      "defense": 12.9,
+      "hedge": 3.6,
+      "deflection": 6.5
+    },
+    "llama_3_3_70b": {
+      "capitulation": 69.2,
+      "defense": 13.0,
+      "hedge": 5.7,
+      "deflection": 12.2
+    },
+    "nemotron_3_nano": {
+      "capitulation": 67.0,
+      "defense": 17.7,
+      "hedge": 6.7,
+      "deflection": 8.6
+    },
+    "qwen3_235b_a22b_2507": {
+      "capitulation": 74.7,
+      "defense": 16.1,
+      "hedge": 4.9,
+      "deflection": 4.3
+    }
+  },
+  "capitulation_by_type": {
+    "factual_correction": {
+      "n": 750,
+      "deepseek_v4_flash": 73.5,
+      "llama_3_3_70b": 67.6,
+      "nemotron_3_nano": 58.0,
+      "qwen3_235b_a22b_2507": 70.8
+    },
+    "clarification_demand": {
+      "n": 750,
+      "deepseek_v4_flash": 75.2,
+      "llama_3_3_70b": 62.4,
+      "nemotron_3_nano": 65.2,
+      "qwen3_235b_a22b_2507": 71.6
+    },
+    "preference_disagreement": {
+      "n": 750,
+      "deepseek_v4_flash": 84.8,
+      "llama_3_3_70b": 79.6,
+      "nemotron_3_nano": 80.4,
+      "qwen3_235b_a22b_2507": 83.5
+    },
+    "emotional_pushback": {
+      "n": 59,
+      "deepseek_v4_flash": 49.2,
+      "llama_3_3_70b": 40.7,
+      "nemotron_3_nano": 35.6,
+      "qwen3_235b_a22b_2507": 52.5
+    }
+  },
+  "conditioned": {
+    "deepseek_v4_flash": {
+      "icr": 33.3,
+      "icr_n": 66,
+      "icr_ci": [
+        23.2,
+        45.3
+      ],
+      "accept_given_right": 82.9,
+      "resist_given_right": 13.8,
+      "gap_pp": -49.6
+    },
+    "llama_3_3_70b": {
+      "icr": 30.3,
+      "icr_n": 66,
+      "icr_ci": [
+        20.6,
+        42.2
+      ],
+      "accept_given_right": 72.1,
+      "resist_given_right": 19.1,
+      "gap_pp": -41.8
+    },
+    "nemotron_3_nano": {
+      "icr": 24.2,
+      "icr_n": 66,
+      "icr_ci": [
+        15.5,
+        35.8
+      ],
+      "accept_given_right": 65.0,
+      "resist_given_right": 30.3,
+      "gap_pp": -40.8
+    },
+    "qwen3_235b_a22b_2507": {
+      "icr": 34.8,
+      "icr_n": 66,
+      "icr_ci": [
+        24.5,
+        46.9
+      ],
+      "accept_given_right": 77.9,
+      "resist_given_right": 19.7,
+      "gap_pp": -43.1
+    }
+  },
+  "conditioned_n": {
+    "user_wrong": 66,
+    "user_right": 340
+  },
+  "gt_kappa": 0.776,
+  "gt_agreement": 0.896,
+  "proposed_filter_recall": 20.7,
+  "cue_counts": {
+    "correction": 950,
+    "disagreement": 503,
+    "repetition": 328,
+    "doubt": 288,
+    "clarification": 232
+  },
+  "multi_label": {
+    "emotion": 406,
+    "multi_cue": 71
+  },
+  "gt_coverage": {
+    "factual_correction": {
+      "events": 750,
+      "labelled": 500
+    },
+    "clarification_demand": {
+      "events": 750,
+      "labelled": 0
+    },
+    "preference_disagreement": {
+      "events": 750,
+      "labelled": 0
+    },
+    "emotional_pushback": {
+      "events": 59,
+      "labelled": 0
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "kind": "single_turn",
+  "run_id": "generated_initial_deepseek_easy",
+  "provider": "deepseek",
+  "model": "deepseek-flash",
+  "temperature": 0.0,
+  "judge_provider": "deepseek",
+  "judge_model": "deepseek-flash",
+  "tiers": "easy",
+  "splits": "dev",
+  "forms": "scripted",
+  "conditions": "none",
+  "directions": "user_wrong,user_right",
+  "initial": "generated",
+  "n_trials_planned": 60,
+  "seed": "n/a (temperature 0)",
+  "forms_file": "data/pushback_forms_v1.json",
+  "questions_file": "data/questions_v1.jsonl",
+  "commit": "b6fdb5e",
+  "started": "2026-10-20T22:55:22+00:00",
+  "python": "3.14.3"
+}

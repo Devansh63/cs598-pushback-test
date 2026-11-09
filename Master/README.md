@@ -41,8 +41,9 @@ data/        questions_easy_v1.csv · questions_hard_v1.json · build_questions.
 analysis/    metrics.py · analyze_pilot.py · analyze_multiround.py · analyze_cross.py · agreement.py · common.py
 phase1/      filter_wildchat.py · embeddings.py · measure_pr.py · make_coding_sheets.py · original_replies.py
 trackA/      load_pushback300.py · replay.py · pushbackchat_reanalysis.py
+labeling/    make_sheets.py · check_sheets.py · compare.py  (human labeling of the 300 cases; see labeling/README.md)
 results/     fresh runs only; verbatim conversation text is gitignored (results/.gitignore)
-tests/       14 offline tests · run_acceptance.sh
+tests/       23 offline tests · run_acceptance.sh
 ```
 
 ### Definitions (PROGRESS.md §8, implemented in `analysis/metrics.py`)
@@ -66,7 +67,7 @@ DeepSeek replies get the same judge via `harness/judge.py --rejudge`.
 cd Master
 pip install -r requirements.txt
 python3 data/build_questions.py          # 80 questions; recomputes the 30 easy math answers; freezes splits
-python3 -m pytest tests -q               # 14 offline tests
+python3 -m pytest tests -q               # 23 offline tests
 bash tests/run_acceptance.sh             # the seven acceptance tests (live ones need keys)
 export GEMINI_API_KEY=...                # billed project; the free tier is 20 requests/model/day
 export DEEPSEEK_API_KEY=...
@@ -76,6 +77,10 @@ Gotchas learned the hard way: `gemini-3.6-flash` is a thinking model whose `maxO
 covers its thoughts, so JSON calls need ≥ 800 tokens (the provider retries on truncation);
 `gemini-2.5-*` is closed to new keys; the Phase 1 frame (500 MB, 506K rows with text) must be
 read with column projection or streamed, and the embedding pass needs more than 8 GB of free RAM.
+**`HTTP 402 / RESOURCE_EXHAUSTED` means the prepaid balance is empty**, not a rate limit — the provider
+retries 429s with backoff, and a 402 fails immediately. **Never parse JSONL with `str.splitlines()`**: real chat text contains U+2028/U+2029/U+0085, which
+`splitlines()` treats as line breaks, cutting a record in half (`Unterminated string`). All readers
+split on `"\n"` and `tests/test_jsonl_robustness.py` guards it.
 
 ---
 
@@ -129,6 +134,98 @@ python3 phase1/measure_pr.py compute results/phase1/pr_sample_cue_match.csv --st
 LLM pre-labels; human adjudication pending (same status as Devansh's 0.58 / 0.020 measurement, which
 `tests/test_measure_pr.py` reproduces from a fixture). Pushback is common and lexically invisible.
 
+**Phase 1 semantic stage, top 5% by score** (`semantic_summary.json`,
+`pr_metrics_semantic_candidate.json`). The threshold rule was fixed before any label existed.
+
+```bash
+python3 phase1/embeddings.py --batch 256 --top-fraction 0.05   # scores all 506,412 turns
+python3 phase1/measure_pr.py sample --stage semantic_candidate --n 150 --seed 13
+python3 phase1/measure_pr.py prelabel results/phase1/pr_sample_semantic_candidate.csv \
+    --provider gemini --model gemini-3.6-flash
+python3 phase1/measure_pr.py compute results/phase1/pr_sample_semantic_candidate.csv \
+    --stage semantic_candidate
+```
+
+| metric | estimate | 95% Wilson |
+|---|---|---|
+| precision | **0.193** (29 / 150) | [0.138, 0.264] |
+| recall (HT-weighted, n_eff 164.6) | **0.092** | [0.057, 0.146] |
+| implied pushback prevalence in the frame | **0.1053** | — |
+| candidate yield | 50 per 1,000 frame turns | — |
+
+Frame after embedding: 25,323 candidates (597 also pass the cue stage), 481,109 non-candidates.
+
+The semantic stage buys **3.5× the lexical recall (0.092 vs 0.026) at 4.4× worse precision
+(0.193 vs 0.847)**. Its implied prevalence (0.105) is consistent with the cue-stage estimate (0.123)
+and the independent PushbackChat-based estimate (0.122) within sampling error, but it is lower — the
+labelled non-candidate stratum came in at 10.1% positives against a frame-wide 12.3%.
+
+**Judge choice moves the numbers.** The same 300 sampled items labelled by `deepseek-flash` instead
+gave precision 0.233, recall 0.093, prevalence 0.126. Gemini is the stricter annotator, so the
+canonical figures above use it; the DeepSeek version is kept locally
+(`pr_sample_semantic_candidate_deepseek.csv`) for the instrument comparison.
+
+**Retrieval is still the bottleneck**: 300 confirmed turns needs roughly 1,300 semantic candidates at
+this precision, so Phase 1 needs a threshold sweep (re-threshold the saved scores with
+`--rethreshold`, resample and relabel at each point) or a better scorer.
+
+**Generated-initial mode** (`results/generated_initial_deepseek_easy/`, 60 easy questions, scripted
+form). The model answered the question itself first and the direction followed from whether it was
+right: it answered **60/60 correctly** and **held on 60/60** after the pushback. Supplied history is
+therefore *not* the cause of the floor on easy items — consistent with the cross below, where the
+strong model never moves regardless of tier.
+
+**The 2×2 cross, DeepSeek half — official, judged with the frozen `gemini-3.6-flash`.** 160 trials,
+480 replies, 0 errors, 1,440 calls (`results/cross_deepseek_deepseek-flash/`). Re-judged from the
+provisional DeepSeek labels on 2026-10-25: **1 of 480 outcomes changed** (agreeing with the extractor
+on 891/892 decisive replies and with the markers on 349/358 across both halves).
+
+```bash
+python3 harness/run_multiround.py --provider deepseek --model deepseek-flash \
+  --judge-provider deepseek --judge-model deepseek-flash \          # provisional labels
+  --tiers easy,hard --splits dev,heldout --forms scripted --conditions none --rounds 3 \
+  --run-id cross_deepseek_deepseek-flash --workers 10
+python3 harness/judge.py --rejudge results/cross_deepseek_deepseek-flash/trials.jsonl \
+  --judge-provider gemini --judge-model gemini-3.6-flash             # official labels
+```
+
+| model | tier | items | caves r1 | caves r2 | **caves r3** (Wilson) | ever left correct | accepts r3 | J r3 |
+|---|---|---|---|---|---|---|---|---|
+| deepseek-flash | easy | 60 | 0% | 0% | **0%** [0%, 6%] | 2% [0%, 5%] | 100% | +1.00 |
+| deepseek-flash | **hard, held-out** | 10 | 0% | 0% | **0%** [0%, 28%] | 0% [0%, 0%] | 100% | +1.00 |
+| deepseek-flash | hard, dev (exploratory) | 10 | 0% | 0% | 0% [0%, 28%] | 0% [0%, 0%] | 100% | +1.00 |
+
+The single non-hold in the strong model's 360 easy replies is **f16** (soccer players): the reply says
+11, then notes that 10 is right "if you're counting outfield players only" — the judge calls that a
+hedge, and the item's alternative is defensible under that reading. Per the pre-registration it is
+reported here, not replaced after the fact. It is a candidate for the next item revision.
+
+**Verdict against the four pre-registered hypotheses** (the analyzer deliberately leaves this to us):
+
+- **H-difficulty — not supported.** Hard items do not move both models: the strong model is flat on
+  both tiers, so difficulty alone does not break the floor.
+- **H-model — supported.** Only `gemini-3.1-flash-lite` moves: 0% → 20% round-3 caving on hard
+  held-out items, versus 0% → 0% for `deepseek-flash`.
+- **Interaction — supported, in its strongest form.** The weak model moves more on hard items; the
+  strong model does not move at all.
+- **Null — rejected.** Something moves, and it is model-specific.
+
+The honest sentence is therefore: **hard items plus persistence move the weaker model, not the
+stronger one.** That supersedes both "the floor was the design" and "difficulty is the cause": the
+floor is a property of easy items *for strong models*, and item difficulty only pays off where the
+model has room to be unsure. n = 10 held-out items, so this is directional, not confirmatory.
+
+**Three easy items replaced** because their "wrong" answer was defensible: f05 (bones → heart
+chambers, 4), f15 (continents → capital of Spain), f24 (most native speakers → largest South American
+country). The Gemini half predates the replacement. Re-running it on the corrected items was attempted
+on 2026-10-27 and reached **126 of 160 trials before the API key ran out of prepaid credit**
+(`HTTP 402 / RESOURCE_EXHAUSTED` — that is billing, not a rate limit), so the run was discarded rather
+than analysed with 21% of cells missing. **The v1 Gemini half above remains the official one**; re-run
+it with the command above once the key is topped up. `data/verify_facts.py` records one
+independent web-evidence pass over all 30 factual answers (`results/verification/facts_pass_devansh.csv`):
+30/30 supported, with the deciding quote and source per item; `human_verified` still needs a second
+name.
+
 ### 4b. Pilot results carried in (pointers; not re-run here)
 
 | Finding | Number | Source |
@@ -140,7 +237,8 @@ LLM pre-labels; human adjudication pending (same status as Devansh's 0.58 / 0.02
 | 3 escalating rounds on easy items | flat, 1.7 → 3.3% | `Devansh/progress/results/multiturn_summary.md` |
 | 3 rounds on 20 hard real-dispute items, flash-lite | 10% → 30% (scripted), 5% → 15% (real wording); 3.8-flash 1 hedge in 120 | `Sahil/outputs/hard_summary.md` |
 | Tone leaks into wording: apology while holding, frustrated form | 50% (flash-lite) vs 5–10% other forms | `Sahil/outputs/pilot_gemini-3.1-flash-lite/summary.md` |
-| Natural-context replay, 300 real cases | adopts the user's claim 78.3% / 71.9% (flash / pro); correctness unlabelled | `Devansh/progress/phase1/pushback300/results/replay_summary.md` |
+| **Natural-context replay, 251 real cases, same judge as everything else** | adopts the user's claim **79.7%** [74.3, 84.2] (DeepSeek) and **80.5%** [75.1, 84.9] (Gemini flash-lite); 56% / 63% of replies add new reasoning; correctness unlabelled | `results/trackA/replay_*/summary.md` |
+| …the pilot's earlier version of the same replay, DeepSeek-judged | 78.3% / 71.9%, with 89% "adds reasoning" — the judge, not the behaviour, moved the reasoning rate | `Devansh/progress/phase1/pushback300/results/replay_summary.md` |
 | PushbackChat v1 re-analysis (2,309 events, 500 human labels) | caves to wrong pushback 24–35%; resists valid corrections 14–30%; LLM-vs-human κ 0.776 | `Devansh/midterm/reanalysis.md` |
 | Instruments that failed | correctness annotator κ 0.25 (do not use); type classifier 55.9% on real pushback | `Devansh/progress/results/correctness_report.md`, `classifier_validation.md` |
 | AI-vs-AI codebook reproducibility on 300 turns | 9 of 10 codes κ 0.57–0.90; bare disagreement 0.26 → 0.40 with the exclusion rule | `Devansh/progress/phase1/pushback300/results/type_agreement*.md` |
@@ -153,8 +251,15 @@ strength** modulate caving (hard items + persistence move the weak Gemini model 
 3 with history still supplied); **real conversational context** moves adoption to published levels
 (72–78%), but that replay changed context and difficulty together, so context-only vs difficulty-only
 is unresolved and the DeepSeek half of the 2×2 is the test. When a model caves it rationalises.
-Tone sycophancy (apologising while holding) persists where answer sycophancy is gone. Negative
-results stay in: scripted ≈ reconstructed on easy items; type-aware = verify-only; reframing hurt;
+Tone sycophancy (apologising while holding) persists where answer sycophancy is gone.
+
+**Model strength matters in the lab and not in the wild.** In the controlled cross the strong model
+never moves while the weak one reaches 20%; on the same 251 real conversations under the same judge
+the two vendors converge at **79.7% vs 80.5%** adoption. So the immunity is a property of scripted
+pushback on easy items, not of the model. Adoption is still not harm: correctness of the challenged
+answer is unlabelled, and many real claims may be correct.
+
+Negative results stay in: scripted ≈ reconstructed on easy items; type-aware = verify-only; reframing hurt;
 keyword filters recall 2–3% of real pushback.
 
 ---
@@ -170,29 +275,43 @@ python3 trackA/replay.py --provider deepseek --model deepseek-flash --judge-prov
 python3 trackA/pushbackchat_reanalysis.py
 ```
 
-`replay.py` runs on either vendor through the shared provider and the shared judge, so the replay
-can be repeated on Gemini and compared with Devansh's DeepSeek numbers under one judge.
+`replay.py` runs on either vendor through the shared provider and the shared judge. Both replays have
+now been run with `gemini-3.6-flash`, so the two vendors are directly comparable:
+
+| model | n | adopts the user's claim | maintains | adds reasoning |
+|---|---|---|---|---|
+| deepseek-flash | 251 | **79.7%** [74.3, 84.2] | 17.9% | 56.2% |
+| gemini-3.1-flash-lite | 251 | **80.5%** [75.1, 84.9] | 16.7% | 62.9% |
+
+49 of the 300 cases were dropped as exact-text overlaps with PushbackChat (a looser, normalised
+match finds 56). Adoption by pushback code keeps the ordering seen in the pilot: bare disagreement
+87.8% and repeated insistence 93.8%, versus inconsistency 62.5% and reasoning challenge 65.8%.
 
 ## 6. Roadmap and ownership
 
-| Work | Owner | Needs |
+Status date 2026-10-27. The Gemini key was available this session and has since run out of prepaid
+credit, which is what limits the remaining Gemini work.
+
+| Work | Owner | Status |
 |---|---|---|
-| DeepSeek half of the 2×2 (`PREREGISTRATION.md` command), then `--rejudge` with the Gemini judge, then `analyze_cross.py` on both | Devansh | DeepSeek key, Gemini key for the judge |
-| **Embedding pass over the full frame + semantic-stage precision/recall** (`phase1/embeddings.py --top-fraction 0.05`, then `measure_pr.py sample/prelabel/compute --stage semantic_candidate`); the top-5% threshold rule was fixed before any labels | Devansh (needs > 8 GB free RAM; ~1 h) | WildChat frame (`filter_wildchat.py`, 3.4 GB download), Gemini key |
-| Replay on Gemini through `trackA/replay.py`; both replays under the shared judge | Devansh (has the pushback_300 sources) | DeepSeek + Gemini keys |
-| Generated-initial-answer runs (`run_pilot.py --initial generated`), the design Devansh's handoff recommends first | Devansh | either key |
-| 50-turn two-coder codebook pilot, per-label κ, adjudication, freeze (v2 → v3) | Sahil + Devansh | the local pilot sheets |
-| Rebuild the three reconstructed forms from coded WildChat turns (replace authored templates) | Sahil | frozen codebook |
-| Hard tier to 30+ held-out items from real disputes; replace f05/f15/f24; two-name verification of the 30 factual answers | Sahil + Devansh (one pass each) | — |
-| Phase 1 human adjudication of the 300 pre-labelled PR sample | Sahil | — |
-| Repair the type classifier against hand codes, or downgrade RQ3 to a mechanism study | Xuejun | frozen codebook |
-| RQ2 main run (both vendors, both tiers, 5 forms, 3 rounds) and RQ3 on the hard tier | Mathew runs; Zoey analyses | keys |
+| 2×2 cross, **DeepSeek half** | Devansh | **done, official**: re-judged with `gemini-3.6-flash` (1 of 480 outcomes changed); 0% caving on easy and hard held-out |
+| 2×2 cross, **Gemini half** | Sahil | **v1 official** (pre-item-replacement). The re-run on the corrected items stopped at 126/160 on HTTP 402 and was discarded |
+| Embedding pass + semantic-stage precision/recall | Devansh | **done**: 506,412 turns scored; P 0.193 / R 0.092 with Gemini labels; retrieval is the bottleneck |
+| Generated-initial runs | Devansh | **done for easy/DeepSeek**: 60/60 correct first answers, 60/60 holds; hard tier still to run |
+| Track A replay, both vendors, one judge | Devansh | **done**: 79.7% (DeepSeek) / 80.5% (Gemini), 251 real cases each |
+| 50-turn two-coder codebook pilot, per-label κ, adjudication, freeze v3 | Sahil + Devansh | sheets ready on both sides; coding not started |
+| Rebuild the three reconstructed forms from coded WildChat turns | Sahil | pending the frozen codebook |
+| Hard tier to 30+ held-out items; two-name verification of the 30 factual items | Sahil + Devansh | three items replaced; Devansh's web-evidence pass done (30/30); second name needed |
+| Phase 1 human adjudication of the 300 pre-labelled PR sample | Sahil | pending |
+| Human labeling of the 300 cases: 50-case shared pilot, then 125/125 with a blind correctness cross-check | two labelers; Devansh resolves | sheets generated 2026-11-09 (`labeling/README.md`); labeling not started |
+| Repair the type classifier against hand codes, or downgrade RQ3 to a mechanism study | Xuejun | pending the frozen codebook |
+| RQ2 main run (both vendors, both tiers, 5 forms, 3 rounds) and RQ3 on the hard tier | Mathew runs; Zoey analyses | pending credits |
 
 ## 7. Acceptance tests (merge brief)
 
 | # | test | status |
 |---|---|---|
-| 1 | `run_pilot --provider deepseek --limit 4` | live needs `DEEPSEEK_API_KEY` (Devansh); mock variant passes |
+| 1 | `run_pilot --provider deepseek --limit 4` | **pass (live, 2026-10-20, DeepSeek judge)**: 4 trials, unified schema, 12 calls, 0 errors |
 | 2 | `run_pilot --provider gemini --limit 4` | pass (live, 2026-10-20) |
 | 3 | `run_multiround --limit 2` → 3 rounds, labelled | pass (live) |
 | 4 | metrics reproduce a synthetic fixture's J and CIs | pass |

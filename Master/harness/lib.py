@@ -33,7 +33,7 @@ _write_lock = threading.Lock()
 # ---------------------------------------------------------------- data
 def load_questions(path=None, tiers=None, splits=None, ids=None):
     path = Path(path) if path else DATA / "questions_v1.jsonl"
-    qs = [json.loads(l) for l in path.read_text(encoding="utf-8").splitlines() if l.strip()]
+    qs = [json.loads(l) for l in path.read_text(encoding="utf-8").split("\n") if l.strip()]
     if tiers:
         qs = [q for q in qs if q["tier"] in tiers]
     if splits:
@@ -175,7 +175,7 @@ def load_jsonl(path):
     if not path.exists():
         return {}
     rows = {}
-    for l in path.read_text(encoding="utf-8").splitlines():
+    for l in path.read_text(encoding="utf-8").split("\n"):
         if l.strip():
             r = json.loads(l)
             rows[r["trial_id"]] = r  # last write wins (resume safety)
