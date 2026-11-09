@@ -17,7 +17,7 @@ python3 labeling/make_sheets.py --coders labeler_a labeler_b --resolver devansh 
 | Disagreements | | | Devansh settles on `resolve_devansh.xlsx` |
 
 The pilot comes first: compare the two pilot sheets, settle disagreements, freeze the codebook,
-then the main round starts. `assignments.csv` (committed, ids only) records every case's phase,
+then the main round starts. The sheets themselves live only in the team Drive folder (`CS598-Group6 / Labeling / Labeler A` and `Labeler B`): this repo is public and they hold real user turns. `sheets_manifest.csv` is the repo's record of them. `assignments.csv` (committed, ids only) records every case's phase,
 coder, checker and resolver. The same seed always gives the same split.
 
 Three or more people instead: `make_sheets.py --coders a b c ...` gives each a coding batch and a
@@ -34,8 +34,10 @@ python3 trackA/load_pushback300.py --contexts <pushback_300_contexts.md> --workb
 # 2. Make the sheets (refuses to overwrite filled sheets; --format csv for CSV)
 python3 labeling/make_sheets.py --coders labeler_a labeler_b --resolver devansh --pilot 50
 
-# 3. Hand out the sheets privately (never through GitHub). When they come back, put them in
-#    results/labeling/ under the same names and check them:
+# 3. Record what goes out, then hand out the sheets privately (never through GitHub):
+python3 labeling/manifest.py
+#    When they come back, put them in results/labeling/ under the same names and check them:
+python3 labeling/manifest.py --check                  # same cases as were sent out?
 python3 labeling/check_sheets.py results/labeling/*.xlsx
 
 # 4. Compare: pilot code agreement, correctness agreement, the resolve sheet, human vs AI codes
@@ -60,6 +62,7 @@ handles are replaced with placeholders by the same rule as the pilot sheets
 |---|---|---|
 | `results/labeling/pilot_*`, `coding_*`, `check_*`, `resolve_*`, `disagreements_*` | verbatim conversation text | no (`results/.gitignore`) |
 | `results/labeling/assignments.csv` | item_id, phase, coder, checker, resolver | yes |
+| `results/labeling/sheets_manifest.csv` | per sheet: labeler, phase, rows, SHA-256 of its case ids and of the file as sent, Drive folder name (no text, no ids, no links) | yes |
 | `results/labeling/correctness_final.csv` | item_id, user_claim, status | yes |
 | `results/labeling/pilot_agreement.csv`, `summary.md` | agreement tables | yes |
 

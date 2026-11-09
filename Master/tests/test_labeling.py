@@ -5,7 +5,7 @@ import json
 import pytest
 from openpyxl import load_workbook
 
-from labeling import check_sheets, compare, make_sheets
+from labeling import check_sheets, compare, make_sheets, manifest
 from labeling.common import check_cols, coding_cols, read_sheet, write_sheet
 
 SIX = ["ann", "bob", "cat"]
@@ -139,3 +139,22 @@ def test_compare_pair_design_routes_to_resolver(tmp_path):
                 [dict(r, user_claim_final="correct" if r["item_id"] == pilot_item else "not_checkable") for r in rows])
     final, _ = compare.main(["--dir", str(out), "--meta", str(meta)])
     assert final[pilot_item] == ("correct", "resolved") and final[main_item] == ("", "excluded")
+
+
+def test_manifest_has_no_text_and_checks_returned_sheets(tmp_path, capsys):
+    out, _ = build(tmp_path, "--coders", "la", "lb", "--resolver", "dev", "--pilot", "4", n=14)
+    rows = manifest.main(["--dir", str(out)])
+    assert sorted(r["sheet"] for r in rows) == sorted(f"{p}_{x}.xlsx" for p in ("pilot", "coding", "check") for x in ("la", "lb"))
+    text = (out / manifest.NAME).read_text()
+    assert "earlier question" not in text and "wrong really" not in text and "PB_" not in text   # no text, no ids
+    assert manifest.main(["--dir", str(out), "--check"]) == 0
+    fill(out, "coding_la", label)                                       # labels added: still the same cases
+    assert manifest.main(["--dir", str(out), "--check"]) == 0
+    assert "same cases, labels added" in capsys.readouterr().out
+    cols, rs = read_sheet(out / "check_lb.xlsx")
+    write_sheet(out / "check_lb.xlsx", cols, rs[1:])                     # a row deleted
+    with pytest.raises(SystemExit):
+        manifest.main(["--dir", str(out), "--check"])
+    assert f"missing ['{rs[0]['item_id']}']" in capsys.readouterr().out
+    with pytest.raises(SystemExit):                                      # never overwritten by accident
+        manifest.main(["--dir", str(out)])
